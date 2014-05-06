@@ -1,0 +1,20 @@
+{
+  "name": "postEmitter",
+  "version": "0.0.1",
+  "description": "A event emitter for embeded apps that allows you to talk to it via events rather then onMessage",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "postMessage"
+  ],
+  "author": "Jacob Lowe",
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "~0.4.4",
+    "grunt-contrib-concat": "~0.4.0",
+    "grunt-contrib-connect": "~0.7.1",
+    "grunt-contrib-uglify": "~0.4.0"
+  }
+}

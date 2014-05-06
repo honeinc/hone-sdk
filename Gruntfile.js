@@ -1,0 +1,53 @@
+'use strict';
+
+module.exports = function (grunt) {
+
+    grunt.initConfig({
+        concat: {
+            options: {
+                separator: '\n\n',
+            },
+            emitter: {
+                src: [
+                    'lib/closureOpen.js',
+                    'lib/Emitter.js', 
+                    'index.js',
+                    'lib/closureClose.js'],
+                dest: 'build/postEmitter.js',
+            },
+            hone: {
+                src: [
+                    'lib/closureOpen.js',
+                    'lib/Emitter.js', 
+                    'index.js',
+                    'hone.js',
+                    'lib/closureClose.js'],
+                dest: 'build/embed.js',
+            }
+        },
+        connect: {
+            server: {
+                options: {
+                    port: 3030,
+                    hostname: '*',
+                    keepalive: true
+                }
+            }
+        },
+        uglify : {
+            dist: {
+                files: {
+                    'build/embed.min.js': 'build/embed.js'
+                }
+            }
+        }
+
+    });
+
+    grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-connect');
+
+    grunt.registerTask('default', ['concat', 'uglify', 'connect']);
+
+};
