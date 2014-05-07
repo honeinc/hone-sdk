@@ -190,7 +190,7 @@ function PostEmitter( options ) {
     this.isIframe = isIframe;
     this.options = options || {};
     this._emitter = new _Emitter( );
-    this.el = (isIframe) ? null : this.getFrame( this.options.id );
+    this.el = (isIframe) ? null : this.getFrame( this.options.selector );
     this.prefix = new RegExp( '^' + this.options.prefix );
     this.setOrigin( this.options.origin );
     this.addListener();
@@ -200,8 +200,8 @@ function PostEmitter( options ) {
  * Selects a iframe based off the id passed to it
  */
 
-PostEmitter.prototype.getFrame = function ( id ) {
-    return document.getElementById( id );
+PostEmitter.prototype.getFrame = function ( selector ) {
+    return document.querySelector( selector );
 };
 
 PostEmitter.prototype.on = function( ) {
@@ -274,10 +274,19 @@ if( typeof onPostEmitterReady === 'function' ) {
 'use strict';
 
 function Hone ( options ) {
-    options = options || {};
-    this.current = options.hone;
-    this.postEmitter = new PostEmitter( options );   
+    this.options = options || {};
+    this.current = this.options.hone;
+    this.postEmitter = new PostEmitter( this.options );
+    this.el = this.postEmitter.el;
 }
+
+Hone.prototype.setSrc = function ( opts ) {
+    var domain = opts.domain || 'http://gohone.com',
+        debug = opts.debug ? '&debug=true' : '',
+        type = opts.ad ? 'AdUnit' : 'Contest',
+        id = this.el.dataset.hone;
+    this.el.src = domain + '/' + type + '/' + id + '?embed=true' + debug;
+};
 
 Hone.prototype.onIframeResize = function ( ) {
     var el = this.postEmitter.el;
@@ -297,6 +306,7 @@ Hone.prototype.emit = function ( ) {
     this.postEmitter.emit.apply( this.postEmitter, arguments ); 
 };
 
+Hone.prototype.urlParser =
 Hone.urlParser = function ( url ) {
     var resource, id;
     // we should just be looking at contest urls.
@@ -313,11 +323,16 @@ Hone.urlParser = function ( url ) {
     };
 };
 
+Hone.prototype.init = function ( opts ) {
+    opts = opts || {};
+    if ( !this.el.src ) this.setSrc( opts );
+};
+
 /* initializing script */
-var el = document.getElementById('hone-embed'),
+var el = document.querySelector('[data-hone]'),
     url = el.src,
     hone = new Hone({
-        id : 'hone-embed',
+        selector : '[data-hone]',
         hone : Hone.urlParser( url ) || {},
         prefix : 'Hone:'
     });

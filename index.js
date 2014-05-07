@@ -30,7 +30,7 @@ function PostEmitter( options ) {
     this.isIframe = isIframe;
     this.options = options || {};
     this._emitter = new _Emitter( );
-    this.el = (isIframe) ? null : this.getFrame( this.options.id );
+    this.el = (isIframe) ? null : this.getFrame( this.options.selector );
     this.prefix = new RegExp( '^' + this.options.prefix );
     this.setOrigin( this.options.origin );
     this.addListener();
@@ -40,8 +40,8 @@ function PostEmitter( options ) {
  * Selects a iframe based off the id passed to it
  */
 
-PostEmitter.prototype.getFrame = function ( id ) {
-    return document.getElementById( id );
+PostEmitter.prototype.getFrame = function ( selector ) {
+    return document.querySelector( selector );
 };
 
 PostEmitter.prototype.on = function( ) {
