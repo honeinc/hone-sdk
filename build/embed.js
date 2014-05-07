@@ -164,7 +164,7 @@ Emitter.prototype.hasListeners = function(event){
 var supported = ( 'postMessage' in window ) && 
         ( 'bind' in function(){} ) &&
         ( 'JSON' in window ),
-    isComponent = ( 'module' in window ) && 
+    isComponent = ( typeof module === 'object' ) && 
         ( 'require' in window ), 
     isIframe = (top !== self),
     _Emitter;
@@ -190,7 +190,7 @@ function PostEmitter( options ) {
     this.isIframe = isIframe;
     this.options = options || {};
     this._emitter = new _Emitter( );
-    this.el = (isIframe) ? null : this.getFrame( this.options.id );
+    this.el = (isIframe) ? null : this.getFrame( this.options.selector );
     this.prefix = new RegExp( '^' + this.options.prefix );
     this.setOrigin( this.options.origin );
     this.addListener();
@@ -200,8 +200,8 @@ function PostEmitter( options ) {
  * Selects a iframe based off the id passed to it
  */
 
-PostEmitter.prototype.getFrame = function ( id ) {
-    return document.getElementById( id );
+PostEmitter.prototype.getFrame = function ( selector ) {
+    return document.querySelector( selector );
 };
 
 PostEmitter.prototype.on = function( ) {
@@ -216,7 +216,6 @@ PostEmitter.prototype.emit = function( ) {
 
     // emit to the correct location
     if ( this.isIframe ) {
-        console.log( this._origin );
         return window.parent.postMessage( event, this._origin );
     }
     this.el.contentWindow.postMessage( event, this._origin );
@@ -261,6 +260,8 @@ PostEmitter.prototype.addListener = function ( ) {
     window.addEventListener('message', this.onMessage.bind( this ), false );
 };
 
+PostEmitter.inIframe = isIframe;
+
 if ( isComponent ) {
     module.exports = PostEmitter;
 }
@@ -273,47 +274,39 @@ if( typeof onPostEmitterReady === 'function' ) {
 'use strict';
 
 function Hone ( options ) {
-    options = options || {};
-    this.current = options.hone;
-    this.postEmitter = new PostEmitter( options );    
+    this.options = options || {};
+    this.current = this.options.hone;
+    this.postEmitter = new PostEmitter( this.options );
+    this.el = this.postEmitter.el;
 }
 
-Hone.prototype.onWindowResize = function ( delay ) {
-    var delayTimer,
-        emit = this.postEmitter.emit,
-        el = this.postEmitter.el;
-    return function ( ) { 
-
-        // setting up fake event object
-        var parentNode = el.parentNode,
-            event = {
-                clientWidth : parentNode.clientWidth,
-                clientHeight : parentNode.clientHeight,
-                innerWidth : window.innerWidth,
-                innerHeight : window.innerHeight
-            };
-
-        clearTimeout( delayTimer );
-        delayTimer = setTimeout(function(){
-            emit( 'resize', event );
-        }, delay);
-    };
+Hone.prototype.setSrc = function ( opts ) {
+    var domain = opts.domain || 'http://gohone.com',
+        debug = opts.debug ? '&debug=true' : '',
+        type = opts.ad ? 'AdUnit' : 'Contest',
+        id = this.el.dataset.hone;
+    this.el.src = domain + '/' + type + '/' + id + '?embed=true' + debug;
 };
 
-Hone.prototype.onWindowResize = function ( ) {
+Hone.prototype.onIframeResize = function ( ) {
     var el = this.postEmitter.el;
     return function ( e ) {
         // should only have to control height
-        if ( typeof e.innerHeight !== 'number' ) return;
-        el.style.height = e.innerHeight + 'px';
+        if ( typeof e.clientHeight !== 'number' ) return;
+        el.style.height = e.clientHeight + 'px';
     };
 };
 
-Hone.prototype.addListener = function ( ) {
-    window.addEventListener('resize', this.onResize( 1000 ), false );
-    this.postEmitter.on('resize', this.onIframeResize(), false );
+Hone.prototype.on = function ( ) {
+    this.postEmitter.on.apply( this.postEmitter, arguments ); 
 };
 
+Hone.prototype.emit = function ( ) {
+    // we can hijack the emitter here and post it with the id.
+    this.postEmitter.emit.apply( this.postEmitter, arguments ); 
+};
+
+Hone.prototype.urlParser =
 Hone.urlParser = function ( url ) {
     var resource, id;
     // we should just be looking at contest urls.
@@ -330,14 +323,20 @@ Hone.urlParser = function ( url ) {
     };
 };
 
+Hone.prototype.init = function ( opts ) {
+    opts = opts || {};
+    if ( !this.el.src ) this.setSrc( opts );
+};
 
-var el = document.getElementById('hone-embed'),
+/* initializing script */
+var el = document.querySelector('[data-hone]'),
     url = el.src,
     hone = new Hone({
-        id : 'hone-embed',
+        selector : '[data-hone]',
         hone : Hone.urlParser( url ) || {},
         prefix : 'Hone:'
     });
+
 if ( typeof onHoneReady === 'function' ) return onHoneReady( hone );
 window.hone = hone;
 

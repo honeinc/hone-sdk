@@ -4,7 +4,7 @@
 var supported = ( 'postMessage' in window ) && 
         ( 'bind' in function(){} ) &&
         ( 'JSON' in window ),
-    isComponent = ( 'module' in window ) && 
+    isComponent = ( typeof module === 'object' ) && 
         ( 'require' in window ), 
     isIframe = (top !== self),
     _Emitter;
@@ -30,7 +30,7 @@ function PostEmitter( options ) {
     this.isIframe = isIframe;
     this.options = options || {};
     this._emitter = new _Emitter( );
-    this.el = (isIframe) ? null : this.getFrame( this.options.id );
+    this.el = (isIframe) ? null : this.getFrame( this.options.selector );
     this.prefix = new RegExp( '^' + this.options.prefix );
     this.setOrigin( this.options.origin );
     this.addListener();
@@ -40,8 +40,8 @@ function PostEmitter( options ) {
  * Selects a iframe based off the id passed to it
  */
 
-PostEmitter.prototype.getFrame = function ( id ) {
-    return document.getElementById( id );
+PostEmitter.prototype.getFrame = function ( selector ) {
+    return document.querySelector( selector );
 };
 
 PostEmitter.prototype.on = function( ) {
@@ -56,7 +56,6 @@ PostEmitter.prototype.emit = function( ) {
 
     // emit to the correct location
     if ( this.isIframe ) {
-        console.log( this._origin );
         return window.parent.postMessage( event, this._origin );
     }
     this.el.contentWindow.postMessage( event, this._origin );
@@ -100,6 +99,8 @@ PostEmitter.prototype.serialize = function ( msg ) {
 PostEmitter.prototype.addListener = function ( ) {
     window.addEventListener('message', this.onMessage.bind( this ), false );
 };
+
+PostEmitter.inIframe = isIframe;
 
 if ( isComponent ) {
     module.exports = PostEmitter;
