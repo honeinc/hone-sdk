@@ -164,7 +164,7 @@ Emitter.prototype.hasListeners = function(event){
 var supported = ( 'postMessage' in window ) && 
         ( 'bind' in function(){} ) &&
         ( 'JSON' in window ),
-    isComponent = ( 'module' in window ) && 
+    isComponent = ( typeof module === 'object' ) && 
         ( 'require' in window ), 
     isIframe = (top !== self),
     _Emitter;
@@ -260,6 +260,8 @@ PostEmitter.prototype.serialize = function ( msg ) {
 PostEmitter.prototype.addListener = function ( ) {
     window.addEventListener('message', this.onMessage.bind( this ), false );
 };
+
+PostEmitter.inIframe = isIframe;
 
 if ( isComponent ) {
     module.exports = PostEmitter;
