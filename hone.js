@@ -122,12 +122,18 @@ Hone.urlParser = function ( url ) {
  * to configure iframe
  *
  * - opts { Object }
+ *   - opts.resize { Boolean }
+ *     - this will allow the iframe to resize its height to the content of
+ *       the iframe
  *   - please reference Hone::setSrc
  */
 
 Hone.prototype.init = function ( opts ) {
     opts = opts || {};
     if ( !this.el.src ) this.setSrc( opts );
+    if ( opts.resize || this.el.dataset.resize ) {
+        this.on('resize', this.onIframeResize());
+    }
 };
 
 /* initializing Hone

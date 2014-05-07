@@ -214,19 +214,13 @@ PostEmitter.prototype.emit = function( ) {
     var args = Array.prototype.slice.call(arguments, 0),
         event = this.serialize( args );
 
+    var target = this.isIframe ? window.parent : this.el.contentWindow;
     // emit to the correct location
-    if ( this.isIframe ) {
-        return window.parent.postMessage( event, this._origin );
-    }
-    this.el.contentWindow.postMessage( event, this._origin );
+    target.postMessage( event, this._origin );
 };
 
 PostEmitter.prototype.setOrigin = function ( origin ) {
-    if ( !origin ){
-        this._origin = '*';
-        return;
-    }
-    this._origin = origin;
+    this._origin = origin || '*';
 };
 
 PostEmitter.prototype.onMessage = function ( e ) {
@@ -269,5 +263,6 @@ if ( isComponent ) {
 if( typeof onPostEmitterReady === 'function' ) {
     return onPostEmitterReady( PostEmitter );
 }
+
 
 }( window, document ));
