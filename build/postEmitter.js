@@ -216,7 +216,6 @@ PostEmitter.prototype.emit = function( ) {
 
     // emit to the correct location
     if ( this.isIframe ) {
-        console.log( this._origin );
         return window.parent.postMessage( event, this._origin );
     }
     this.el.contentWindow.postMessage( event, this._origin );

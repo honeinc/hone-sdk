@@ -42,7 +42,7 @@ Hone.urlParser = function ( url ) {
 };
 
 /* initializing script */
-var el = document.querySelectorAll('hone-embed'),
+var el = document.getElementById('hone-embed'),
     url = el.src,
     hone = new Hone({
         id : 'hone-embed',

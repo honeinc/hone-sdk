@@ -216,7 +216,6 @@ PostEmitter.prototype.emit = function( ) {
 
     // emit to the correct location
     if ( this.isIframe ) {
-        console.log( this._origin );
         return window.parent.postMessage( event, this._origin );
     }
     this.el.contentWindow.postMessage( event, this._origin );
@@ -315,7 +314,7 @@ Hone.urlParser = function ( url ) {
 };
 
 /* initializing script */
-var el = document.querySelectorAll('hone-embed'),
+var el = document.getElementById('hone-embed'),
     url = el.src,
     hone = new Hone({
         id : 'hone-embed',
