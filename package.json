@@ -1,6 +1,6 @@
 {
-  "name": "postEmitter",
-  "version": "0.0.1",
+  "name": "hone-embed",
+  "version": "0.0.4",
   "description": "A event emitter for embeded apps that allows you to talk to it via events rather then onMessage",
   "main": "index.js",
   "scripts": {
@@ -9,6 +9,7 @@
   "keywords": [
     "postMessage"
   ],
+  "company": "Hone Inc (http://gohone.com)",
   "author": "Jacob Lowe",
   "license": "MIT",
   "devDependencies": {
