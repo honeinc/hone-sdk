@@ -3,6 +3,7 @@
 module.exports = function (grunt) {
 
     grunt.initConfig({
+        pkg : grunt.file.readJSON('package.json'),
         concat: {
             options: {
                 separator: '\n\n',
@@ -36,8 +37,11 @@ module.exports = function (grunt) {
         },
         uglify : {
             dist: {
+                options : {
+                    banner : "/* <%= pkg.name %> - v<%= pkg.version %>\n * <%= pkg.company %>\n */\n\n"
+                },
                 files: {
-                    'build/embed.min.js': 'build/embed.js'
+                    'dist/<%= pkg.name %>-<%= pkg.version %>.min.js': 'build/embed.js'
                 }
             }
         }
@@ -48,6 +52,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-connect');
 
-    grunt.registerTask('default', ['concat', 'uglify', 'connect']);
+    grunt.registerTask('default', ['concat', 'connect']);
+    grunt.registerTask('dist', 'uglify');
 
 };
