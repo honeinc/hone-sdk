@@ -75,13 +75,13 @@ PostEmitter.prototype.onMessage = function ( e ) {
     var msg = this.deserialize( e.data );
     if ( !msg )
     {
-        this.emit( 'error', 'Hone could not parse event: ' + e.data );
+        this._emitter.emit( 'error', new Error( 'PostEmitter could not parse event: ' + e.data ) );
         return;
     }
     
     if ( !Array.isArray( msg ) )
     {
-        this.emit( 'error', 'Hone expects array objects from events. Did not get an array from event: ' + e.data );
+        this._emitter.emit( 'error', new Error( 'PostEmitter expects arrays from events. Did not get an array from event: ' + e.data ) );
         return;
     }
 
