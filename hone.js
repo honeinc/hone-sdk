@@ -1,7 +1,7 @@
 /* global PostEmitter, onHoneReady */
 'use strict';
 
-/* Hone - Contructor
+/* Hone - Constructor
  *
  * a options { Object } is passed to the function
  * this in turn is passed to the postEmitter Constructor
@@ -118,16 +118,22 @@ Hone.urlParser = function ( url ) {
 
 /* Hone::init
  *
- * a init funciton to build url when called, pass in a opts { Object }
+ * a init function to build url when called, pass in a opts { Object }
  * to configure iframe
  *
  * - opts { Object }
+ *   - opts.resize { Boolean }
+ *     - this will allow the iframe to resize its height to the content of
+ *       the iframe
  *   - please reference Hone::setSrc
  */
 
 Hone.prototype.init = function ( opts ) {
     opts = opts || {};
     if ( !this.el.src ) this.setSrc( opts );
+    if ( opts.resize || this.el.dataset.resize ) {
+        this.on('resize', this.onIframeResize());
+    }
 };
 
 /* initializing Hone

@@ -32,6 +32,7 @@ function PostEmitter( options ) {
     this._emitter = new _Emitter( );
     this.el = (isIframe) ? null : this.getFrame( this.options.selector );
     this.prefix = new RegExp( '^' + this.options.prefix );
+    this.prefixLength = this.options.prefix.length;
     this.setOrigin( this.options.origin );
     this.addListener();
 }
@@ -64,26 +65,44 @@ PostEmitter.prototype.setOrigin = function ( origin ) {
 };
 
 PostEmitter.prototype.onMessage = function ( e ) {
-    var msg;
- 
-    msg = this.deserialize( e.data );
-    if ( !msg ) return;
-    if ( typeof msg === 'object', Array.isArray( msg ) ) {
-        // assumes that the format is an array
-        this._emitter.emit.apply( this._emitter, msg );
+
+    // return if it doesnt have a good prefix
+    if ( !this.prefix.test( e.data ) )
+    {
+        return;
     }
+
+    var msg = this.deserialize( e.data );
+    if ( !msg )
+    {
+        this._emitter.emit( 'error', new Error( 'PostEmitter could not parse event: ' + e.data ) );
+        return;
+    }
+    
+    if ( !Array.isArray( msg ) )
+    {
+        this._emitter.emit( 'error', new Error( 'PostEmitter expects arrays from events. Did not get an array from event: ' + e.data ) );
+        return;
+    }
+
+    this._emitter.emit.apply( this._emitter, msg );
 };
 
 PostEmitter.prototype.deserialize = function ( msg ) {
-    // return if it doesnt have a good prefix
-    if ( !this.prefix.test( msg ) ) return;
-    var json = msg.replace( this.prefix, '');
-    try {
-        json = JSON.parse( json );
-    } catch ( e ) {
-        return this.emit('error', e );
+    
+    var json = msg.slice( this.prefixLength );
+    var obj = null;
+    try
+    {
+        obj = JSON.parse( json );
     }
-    if ( typeof json === 'object' ) return json;
+    catch ( e )
+    {
+        obj = null;
+        this.emit( 'error', e );
+    }
+    
+    return obj;
 };
 
 PostEmitter.prototype.serialize = function ( msg ) {
@@ -101,5 +120,5 @@ if ( isComponent ) {
 }
 
 if( typeof onPostEmitterReady === 'function' ) {
-    return onPostEmitterReady( PostEmitter );
+    onPostEmitterReady( PostEmitter );
 }

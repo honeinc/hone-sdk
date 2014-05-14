@@ -9,8 +9,10 @@
 If you copied the embeded code from the gohone.com interface you can just add a `data-hone` attribute to the iframe to enable the code to run against that embed.
 
 ```html
-<iframe src="..." data-hone></iframe>
+<iframe src="..." data-hone data-resize="true"></iframe>
 ```
+
+optionally you can try out a beta feature that allows the iframe to resize its height dynamically to the content inside of the iframe by adding a `data-resize` attribute to the iframe.
 
 Include the script into your page ( script located in `build` directory ).
 
