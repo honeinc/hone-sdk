@@ -120,5 +120,5 @@ if ( isComponent ) {
 }
 
 if( typeof onPostEmitterReady === 'function' ) {
-    return onPostEmitterReady( PostEmitter );
+    onPostEmitterReady( PostEmitter );
 }
