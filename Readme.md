@@ -1,7 +1,7 @@
 
 # Hone Embed
 
-  A simple tool, to work with Hones postmessage from embeded Hone's.
+Simple interactions with embedded Hone Questions and Quizzes.
 
 
 ## Installation
@@ -93,7 +93,7 @@ Once you have a working piece of code open a pull request. :+1:
 
 The MIT License (MIT)
 
-Copyright (c) 2014 <copyright holders>
+Copyright (c) 2014 Hone, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
