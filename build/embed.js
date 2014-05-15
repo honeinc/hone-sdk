@@ -158,14 +158,10 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-/* global top, self, Emitter, onPostEmitterReady */
+/* global top, self, Emitter, onPostEmitterReady, require, module */
 'use strict';
 
-var supported = ( 'postMessage' in window ) && 
-        ( 'bind' in function(){} ) &&
-        ( 'JSON' in window ),
-    isComponent = ( typeof module === 'object' ) && 
-        ( 'require' in window ), 
+var isComponent = ( typeof module === 'object' ) && ( 'require' in window ), 
     isIframe = (top !== self),
     _Emitter;
 
@@ -181,10 +177,6 @@ if ( isComponent ) {
  */
 
 function PostEmitter( options ) {
-    if ( !supported ) {
-        // for now
-        return;
-    }
 
     // setting basic vars
     this.isIframe = isIframe;
@@ -202,7 +194,11 @@ function PostEmitter( options ) {
  */
 
 PostEmitter.prototype.getFrame = function ( selector ) {
-    return document.querySelector( selector );
+    if ( 'querySelector' in document ) {
+        return document.querySelector( selector );
+    }
+    this._emitter.emit( 'error', new Error( '"querySelector" is needed to target iframe' ) );
+    return;
 };
 
 PostEmitter.prototype.on = function( ) {
@@ -215,8 +211,14 @@ PostEmitter.prototype.emit = function( ) {
     var args = Array.prototype.slice.call(arguments, 0),
         event = this.serialize( args );
 
-    var target = this.isIframe ? window.parent : this.el.contentWindow;
+    var target = this.isIframe ? window.parent : ( this.el ? this.el.contentWindow : null );
+    if ( !target ) return; // this should have emitted an error already;
     // emit to the correct location
+    if ( typeof target.postMessage !== 'function' ) {
+        this._emitter.emit( 'error', new Error( event[0] + ' not sent,' + 
+            '"postMessage" is needed to communicate with iframe' ) );
+        return;
+    }
     target.postMessage( event, this._origin );
 };
 
@@ -235,16 +237,16 @@ PostEmitter.prototype.onMessage = function ( e ) {
     var msg = this.deserialize( e.data );
     if ( !msg )
     {
-        this._emitter.emit( 'error', new Error( 'PostEmitter could not parse event: ' + e.data ) );
-        return;
-    }
-    
-    if ( !Array.isArray( msg ) )
-    {
-        this._emitter.emit( 'error', new Error( 'PostEmitter expects arrays from events. Did not get an array from event: ' + e.data ) );
+        this._emitter.emit( 'error', new Error( 'could not parse event: ' + e.data ) );
         return;
     }
 
+    if ( !Array.isArray( msg ) )
+    {
+        this._emitter.emit( 'error', new Error( 'expected an array from postMessage instead got: ' + e.data ) );
+        return;
+    }
+    
     this._emitter.emit.apply( this._emitter, msg );
 };
 
@@ -270,6 +272,9 @@ PostEmitter.prototype.serialize = function ( msg ) {
 };
 
 PostEmitter.prototype.addListener = function ( ) {
+    if ( !('addEventListener' in window && Function.prototype.hasOwnProperty( 'bind' )) ) {
+        return this._emitter.emit( 'error', new Error( '"addEventListener" & ".bind()" needed to listen for messages'  ) );
+    }
     window.addEventListener('message', this.onMessage.bind( this ), false );
 };
 

@@ -1,4 +1,4 @@
-/* global top, self, Emitter, onPostEmitterReady */
+/* global top, self, Emitter, onPostEmitterReady, require, module */
 'use strict';
 
 var isComponent = ( typeof module === 'object' ) && ( 'require' in window ), 
@@ -34,7 +34,11 @@ function PostEmitter( options ) {
  */
 
 PostEmitter.prototype.getFrame = function ( selector ) {
-    return document.querySelector( selector );
+    if ( 'querySelector' in document ) {
+        return document.querySelector( selector );
+    }
+    this._emitter.emit( 'error', new Error( '"querySelector" is needed to target iframe' ) );
+    return;
 };
 
 PostEmitter.prototype.on = function( ) {
@@ -47,13 +51,15 @@ PostEmitter.prototype.emit = function( ) {
     var args = Array.prototype.slice.call(arguments, 0),
         event = this.serialize( args );
 
-    var target = this.isIframe ? window.parent : this.el.contentWindow;
+    var target = this.isIframe ? window.parent : ( this.el ? this.el.contentWindow : null );
+    if ( !target ) return; // this should have emitted an error already;
     // emit to the correct location
-    if ( typeof target.postMessage === 'function' ) {
-        return target.postMessage( event, this._origin );
+    if ( typeof target.postMessage !== 'function' ) {
+        this._emitter.emit( 'error', new Error( event[0] + ' not sent,' + 
+            '"postMessage" is needed to communicate with iframe' ) );
+        return;
     }
-    this._emitter.emit( 'error', new Error( event[0] + ' not sent,' + 
-        '"postMessage" is needed to communicate with iframe' ) );
+    target.postMessage( event, this._origin );
 };
 
 PostEmitter.prototype.setOrigin = function ( origin ) {
@@ -72,6 +78,12 @@ PostEmitter.prototype.onMessage = function ( e ) {
     if ( !msg )
     {
         this._emitter.emit( 'error', new Error( 'could not parse event: ' + e.data ) );
+        return;
+    }
+
+    if ( !Array.isArray( msg ) )
+    {
+        this._emitter.emit( 'error', new Error( 'expected an array from postMessage instead got: ' + e.data ) );
         return;
     }
     
@@ -100,10 +112,10 @@ PostEmitter.prototype.serialize = function ( msg ) {
 };
 
 PostEmitter.prototype.addListener = function ( ) {
-    if ( 'addEventListener' in window && Function.prototype.hasOwnProperty( 'bind' ) ) {
-        return window.addEventListener('message', this.onMessage.bind( this ), false );
+    if ( !('addEventListener' in window && Function.prototype.hasOwnProperty( 'bind' )) ) {
+        return this._emitter.emit( 'error', new Error( '"addEventListener" & ".bind()" needed to listen for messages'  ) );
     }
-    this._emitter.emit( 'error', new Error( '"addEventListener" & ".bind()" needed to listen for messages'  ) );
+    window.addEventListener('message', this.onMessage.bind( this ), false );
 };
 
 PostEmitter.inIframe = isIframe;
