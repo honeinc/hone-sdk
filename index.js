@@ -1,11 +1,7 @@
 /* global top, self, Emitter, onPostEmitterReady */
 'use strict';
 
-var supported = ( 'postMessage' in window ) && 
-        ( 'bind' in function(){} ) &&
-        ( 'JSON' in window ),
-    isComponent = ( typeof module === 'object' ) && 
-        ( 'require' in window ), 
+var isComponent = ( typeof module === 'object' ) && ( 'require' in window ), 
     isIframe = (top !== self),
     _Emitter;
 
@@ -21,10 +17,6 @@ if ( isComponent ) {
  */
 
 function PostEmitter( options ) {
-    if ( !supported ) {
-        // for now
-        return;
-    }
 
     // setting basic vars
     this.isIframe = isIframe;
@@ -57,7 +49,11 @@ PostEmitter.prototype.emit = function( ) {
 
     var target = this.isIframe ? window.parent : this.el.contentWindow;
     // emit to the correct location
-    target.postMessage( event, this._origin );
+    if ( typeof target.postMessage === 'function' ) {
+        return target.postMessage( event, this._origin );
+    }
+    this._emitter.emit( 'error', new Error( event[0] + ' not sent,' + 
+        '"postMessage" is needed to communicate with iframe' ) );
 };
 
 PostEmitter.prototype.setOrigin = function ( origin ) {
@@ -75,16 +71,10 @@ PostEmitter.prototype.onMessage = function ( e ) {
     var msg = this.deserialize( e.data );
     if ( !msg )
     {
-        this._emitter.emit( 'error', new Error( 'PostEmitter could not parse event: ' + e.data ) );
+        this._emitter.emit( 'error', new Error( 'could not parse event: ' + e.data ) );
         return;
     }
     
-    if ( !Array.isArray( msg ) )
-    {
-        this._emitter.emit( 'error', new Error( 'PostEmitter expects arrays from events. Did not get an array from event: ' + e.data ) );
-        return;
-    }
-
     this._emitter.emit.apply( this._emitter, msg );
 };
 
@@ -110,7 +100,10 @@ PostEmitter.prototype.serialize = function ( msg ) {
 };
 
 PostEmitter.prototype.addListener = function ( ) {
-    window.addEventListener('message', this.onMessage.bind( this ), false );
+    if ( 'addEventListener' in window && Function.prototype.hasOwnProperty( 'bind' ) ) {
+        return window.addEventListener('message', this.onMessage.bind( this ), false );
+    }
+    this._emitter.emit( 'error', new Error( '"addEventListener" & ".bind()" needed to listen for messages'  ) );
 };
 
 PostEmitter.inIframe = isIframe;
