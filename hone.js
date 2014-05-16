@@ -1,4 +1,5 @@
 /* global PostEmitter, onHoneReady */
+
 'use strict';
 
 /* Hone - Constructor
@@ -140,13 +141,19 @@ Hone.prototype.init = function ( opts ) {
  * this block of code initializes a Hone Contructor with some basic options
  */
 
-var el = document.querySelector('[data-hone]'),
-    url = el.src,
+var el = ('querySelector' in document) ? document.querySelector('[data-hone]') : null,
+    url, 
+    hone;
+
+// Check if embedded hone is present.
+if ( el ) {
+    url = el.src;
     hone = new Hone({
         selector : '[data-hone]',
         hone : Hone.urlParser( url ) || {},
         prefix : 'Hone:'
     });
+}
 
 /* exporting hone instance
  * this is how we export hone, there is the global option or readyHandler option
