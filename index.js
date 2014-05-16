@@ -34,11 +34,11 @@ function PostEmitter( options ) {
  */
 
 PostEmitter.prototype.getFrame = function ( selector ) {
-    if ( 'querySelector' in document ) {
-        return document.querySelector( selector );
+    if ( !( 'querySelector' in document ) ) {
+        this._emitter.emit( 'error', new Error( '"querySelector" is needed to target iframe' ) );
+        return;
     }
-    this._emitter.emit( 'error', new Error( '"querySelector" is needed to target iframe' ) );
-    return;
+    return document.querySelector( selector );
 };
 
 PostEmitter.prototype.on = function( ) {
