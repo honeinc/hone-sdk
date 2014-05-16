@@ -436,7 +436,7 @@ var el = ('querySelector' in document) ? document.querySelector('[data-hone]') :
     url, 
     hone;
 
-// no embedded hone
+// Check if embedded hone is present.
 if ( el ) {
     url = el.src;
     hone = new Hone({
