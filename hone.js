@@ -36,7 +36,7 @@ function Hone ( options ) {
 Hone.prototype.setSrc = function ( opts ) {
     var domain = opts.domain || 'http://gohone.com',
         debug = opts.debug ? '&debug=true' : '',
-        type = opts.ad ? 'AdUnit' : 'Contest',
+        type = opts.ad ? 'AdUnit' : 'Quiz',
         id = this.el.dataset.hone;
 
     this.el.src = domain + '/' + type + '/' + id + '?embed=true' + debug;
