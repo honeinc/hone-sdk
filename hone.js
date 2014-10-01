@@ -19,6 +19,10 @@ function Hone ( options ) {
     this.current = this.options.hone;
     this.postEmitter = new PostEmitter( this.options );
     this.el = this.postEmitter.el;
+    if ( this.el.getAttribute( 'data-resize' ) ) {
+        this._resize = true;
+        this.on('resize', this.onIframeResize());
+    }
 }
 
 /* Hone::setSrc
@@ -132,7 +136,7 @@ Hone.urlParser = function ( url ) {
 Hone.prototype.init = function ( opts ) {
     opts = opts || {};
     if ( !this.el.src ) this.setSrc( opts );
-    if ( opts.resize || this.el.getAttribute( 'data-resize' ) ) {
+    if ( opts.resize && !this._resize ) { // check _resize to not bind event twice
         this.on('resize', this.onIframeResize());
     }
 };
