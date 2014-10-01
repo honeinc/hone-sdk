@@ -1,6 +1,6 @@
 {
   "name": "hone-embed",
-  "version": "0.1.2",
+  "version": "0.1.5",
   "description": "A event emitter for embeded apps that allows you to talk to it via events rather then onMessage",
   "main": "index.js",
   "scripts": {
