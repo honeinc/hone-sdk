@@ -328,7 +328,7 @@ Hone.prototype.setSrc = function ( opts ) {
     var domain = opts.domain || 'http://gohone.com',
         debug = opts.debug ? '&debug=true' : '',
         type = opts.ad ? 'AdUnit' : 'Quiz',
-        id = this.el.dataset.hone;
+        id = this.el.getAttribute( 'data-hone' );
 
     this.el.src = domain + '/' + type + '/' + id + '?embed=true' + debug;
 };
@@ -423,7 +423,7 @@ Hone.urlParser = function ( url ) {
 Hone.prototype.init = function ( opts ) {
     opts = opts || {};
     if ( !this.el.src ) this.setSrc( opts );
-    if ( opts.resize || this.el.dataset.resize ) {
+    if ( opts.resize || this.el.getAttribute( 'data-resize' ) ) {
         this.on('resize', this.onIframeResize());
     }
 };
