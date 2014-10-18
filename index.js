@@ -1,129 +1,88 @@
-/* global top, self, Emitter, onPostEmitterReady, require, module */
 'use strict';
 
-var isComponent = ( typeof module === 'object' ) && ( 'require' in window ), 
-    isIframe = (top !== self),
-    _Emitter;
+var ajaja = require( 'ajaja' );
+var async = require( 'async' );
+var Emitter = require( 'events' ).EventEmitter;
+var extend = require( 'extend' );
+var util = require( 'util' );
 
-if ( isComponent ) {
-    _Emitter = require('emitter');
-} else {
-    _Emitter = Emitter;
-}
+var Auth = require( './auth' );
+//var state = require( './state' ).singleton;
 
-/*
- * Constructor sets up some simple listeners and
- * gets the element.
- */
+module.exports = Hone;
 
-function PostEmitter( options ) {
-
-    // setting basic vars
-    this.isIframe = isIframe;
-    this.options = options || {};
-    this._emitter = new _Emitter( );
-    this.el = (isIframe) ? null : this.getFrame( this.options.selector );
-    this.prefix = new RegExp( '^' + this.options.prefix );
-    this.prefixLength = this.options.prefix.length;
-    this.setOrigin( this.options.origin );
-    this.addListener();
-}
-
-/*
- * Selects a iframe based off the id passed to it
- */
-
-PostEmitter.prototype.getFrame = function ( selector ) {
-    if ( !( 'querySelector' in document ) ) {
-        this._emitter.emit( 'error', new Error( '"querySelector" is needed to target iframe' ) );
-        return;
-    }
-    return document.querySelector( selector );
+var _defaults = {
+    domain: 'gohone.com:80',
+    localstoragePrefix: '__hone__',
+    init: true
 };
 
-PostEmitter.prototype.on = function( ) {
-    this._emitter.on.apply( this._emitter, arguments );    
-};
-
-PostEmitter.prototype.emit = function( ) {
-
-    // splits the arguments into a nice array
-    var args = Array.prototype.slice.call(arguments, 0),
-        event = this.serialize( args );
-
-    var target = this.isIframe ? window.parent : ( this.el ? this.el.contentWindow : null );
-    if ( !target ) return; // this should have emitted an error already;
-    // emit to the correct location
-    if ( typeof target.postMessage !== 'function' ) {
-        this._emitter.emit( 'error', new Error( event[0] + ' not sent,' + 
-            '"postMessage" is needed to communicate with iframe' ) );
-        return;
-    }
-    target.postMessage( event, this._origin );
-};
-
-PostEmitter.prototype.setOrigin = function ( origin ) {
-    this._origin = origin || '*';
-};
-
-PostEmitter.prototype.onMessage = function ( e ) {
-
-    // return if it doesnt have a good prefix
-    if ( !this.prefix.test( e.data ) )
-    {
-        return;
-    }
-
-    var msg = this.deserialize( e.data );
-    if ( !msg )
-    {
-        this._emitter.emit( 'error', new Error( 'could not parse event: ' + e.data ) );
-        return;
-    }
-
-    if ( !Array.isArray( msg ) )
-    {
-        this._emitter.emit( 'error', new Error( 'expected an array from postMessage instead got: ' + e.data ) );
-        return;
+function Hone( options ) {
+    var self = this;
+    Emitter.call( self );
+    
+    self.options = extend( true, {}, _defaults, options );
+    
+    self.api = null;
+    self.auth = null;
+    
+    if ( self.options.init ) {
+        // we wait a tick to give them an opportunity to bind events
+        setTimeout( self.init.bind( self ), 0 );
     }
     
-    this._emitter.emit.apply( this._emitter, msg );
-};
-
-PostEmitter.prototype.deserialize = function ( msg ) {
-    
-    var json = msg.slice( this.prefixLength );
-    var obj = null;
-    try
-    {
-        obj = JSON.parse( json );
-    }
-    catch ( e )
-    {
-        obj = null;
-        this.emit( 'error', e );
-    }
-    
-    return obj;
-};
-
-PostEmitter.prototype.serialize = function ( msg ) {
-    return this.options.prefix + JSON.stringify(msg);
-};
-
-PostEmitter.prototype.addListener = function ( ) {
-    if ( !('addEventListener' in window && Function.prototype.hasOwnProperty( 'bind' )) ) {
-        return this._emitter.emit( 'error', new Error( '"addEventListener" & ".bind()" needed to listen for messages'  ) );
-    }
-    window.addEventListener('message', this.onMessage.bind( this ), false );
-};
-
-PostEmitter.inIframe = isIframe;
-
-if ( isComponent ) {
-    module.exports = PostEmitter;
+    return self;
 }
 
-if( typeof onPostEmitterReady === 'function' ) {
-    onPostEmitterReady( PostEmitter );
-}
+util.inherits( Hone, Emitter );
+
+Hone.prototype.init = function( callback ) {
+    var self = this;
+    
+    async.series( [
+        self._getAPI.bind( self ),
+        self._setupAuth.bind( self )
+    ], function( error ) {
+        if ( error ) {
+            self.emit( 'error', error );
+        }
+        
+        if ( callback ) {
+            callback( error );
+        }
+    } );
+};
+
+Hone.prototype.url = function( path ) {
+    return '//' + this.options.domain + path;
+};
+
+Hone.prototype._setupAuth = function( callback ) {
+    var self = this;
+    
+    self.auth = new Auth( self );
+    // replicate auth events
+    var authEmit = self.auth.emit;
+    self.auth.emit = function() {
+        authEmit.apply( self.auth, arguments );
+        self.emit.apply( self, arguments );
+    };
+
+    self.auth.getUser( callback );
+};
+
+Hone.prototype._getAPI = function( callback ) {
+    var self = this;
+    ajaja( {
+        method: 'GET',
+        url: '//' + self.options.domain + '/api/1.0'
+    }, function( error, api ) {
+        self.api = error ? null : api;
+
+        if ( self.api ) {
+            self.emit( 'api_loaded', self.api );
+        }
+        
+        callback( error );
+    } );
+};
