@@ -6,7 +6,7 @@ var diff = require( 'deep-diff' ).diff;
 var localforage = require( 'localforage' );
 var util = require( 'util' );
 
-var state = require( './state' ).singleton;
+var state = require( './state' );
 
 module.exports = Auth;
 

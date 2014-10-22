@@ -7,7 +7,6 @@ var extend = require( 'extend' );
 var util = require( 'util' );
 
 var Auth = require( './src/auth' );
-//var state = require( './src/state' ).singleton;
 
 module.exports = Hone;
 
@@ -30,7 +29,7 @@ function Hone( options ) {
         // we wait a tick to give them an opportunity to bind events
         setTimeout( self.init.bind( self ), 0 );
     }
-    
+
     return self;
 }
 
