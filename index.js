@@ -6,8 +6,8 @@ var Emitter = require( 'events' ).EventEmitter;
 var extend = require( 'extend' );
 var util = require( 'util' );
 
-var Auth = require( './auth' );
-//var state = require( './state' ).singleton;
+var Auth = require( './src/auth' );
+//var state = require( './src/state' ).singleton;
 
 module.exports = Hone;
 
