@@ -70,3 +70,35 @@ Auth.prototype.getUser = function( callback ) {
         localforage.setItem( self.hone.options.localstoragePrefix + '.user', user );
     } );
 };
+
+Auth.prototype.logout = function( callback ) {
+    var self = this;
+
+    var existingUser = state.get( 'user' );
+    if ( !existingUser ) {
+        return;
+    }
+
+    ajaja( {
+        url: self.hone.url( self.hone.api.sessions.session ),
+        method: 'DELETE'
+    }, function( error ) {
+        if ( error ) {
+            callback( error );
+            return;
+        }
+        
+        state.set( 'user', null );
+        localforage.setItem( self.hone.options.localstoragePrefix + '.user', null );
+        
+        state.set( 'authtoken', null );
+
+        self.emit( 'logout', {
+            user: existingUser
+        } );
+
+        if ( callback ) {
+            callback();
+        }
+    } );
+};

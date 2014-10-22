@@ -1,6 +1,6 @@
 {
   "name": "hone",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "An SDK for interacting with Hone.",
   "main": "./index.js",
   "scripts": {

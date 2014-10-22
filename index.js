@@ -23,8 +23,10 @@ function Hone( options ) {
     self.options = extend( true, {}, _defaults, options );
     
     self.api = null;
-    self.auth = null;
-    
+
+    self.auth = new Auth( self );
+    self._setupAuth();
+
     if ( self.options.init ) {
         // we wait a tick to give them an opportunity to bind events
         setTimeout( self.init.bind( self ), 0 );
@@ -40,7 +42,7 @@ Hone.prototype.init = function( callback ) {
     
     async.series( [
         self._getAPI.bind( self ),
-        self._setupAuth.bind( self )
+        self.auth.getUser.bind( self.auth )
     ], function( error ) {
         if ( error ) {
             self.emit( 'error', error );
@@ -56,18 +58,20 @@ Hone.prototype.url = function( path ) {
     return '//' + this.options.domain + path;
 };
 
-Hone.prototype._setupAuth = function( callback ) {
+Hone.prototype._setupAuth = function() {
     var self = this;
     
-    self.auth = new Auth( self );
-    // replicate auth events
+    // we re-emit auth events as a convenience
     var authEmit = self.auth.emit;
     self.auth.emit = function() {
         authEmit.apply( self.auth, arguments );
         self.emit.apply( self, arguments );
     };
+    
+    // similarly, we expose auth methods
+    self.getUser = self.auth.getUser.bind( self.auth );
+    self.logout = self.auth.logout.bind( self.auth );
 
-    self.auth.getUser( callback );
 };
 
 Hone.prototype._getAPI = function( callback ) {
