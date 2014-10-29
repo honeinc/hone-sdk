@@ -3,7 +3,7 @@
 var ajaja = require( 'ajaja' );
 var Emitter = require( 'events' ).EventEmitter;
 var diff = require( 'deep-diff' ).diff;
-var localforage = require( 'localforage' );
+var XDLS = require( 'xdls' );
 var util = require( 'util' );
 
 var state = require( './state' );
@@ -15,6 +15,7 @@ function Auth( hone ) {
     Emitter.call( self );
     
     self.hone = hone;
+    self.xdls = new XDLS( hone.options.xdls );
 }
 
 util.inherits( Auth, Emitter );
@@ -24,7 +25,7 @@ Auth.prototype.getUser = function( callback ) {
 
     var loginEmitted = false;
     
-    localforage.getItem( self.hone.options.localstoragePrefix + '.user', function( error, user ) {
+    self.xdls.getItem( 'user', function( error, user ) {
         if ( error ) {
             return; // we don't care if this errors, it's not authoritative
         }
@@ -37,7 +38,7 @@ Auth.prototype.getUser = function( callback ) {
             loginEmitted = true;
         }
     } );
-
+    
     ajaja( {
         method: 'GET',
         url: self.hone.url( self.hone.api.users.me ),
@@ -66,8 +67,12 @@ Auth.prototype.getUser = function( callback ) {
             }
         }
 
-        state.set( 'user', user );
-        localforage.setItem( self.hone.options.localstoragePrefix + '.user', user );
+        if ( user ) {
+            state.set( 'user', user );
+            self.xdls.setItem( 'user', user );
+        }
+        
+        callback( null, user );
     } );
 };
 
@@ -89,7 +94,7 @@ Auth.prototype.logout = function( callback ) {
         }
         
         state.set( 'user', null );
-        localforage.setItem( self.hone.options.localstoragePrefix + '.user', null );
+        self.xdls.removeItem( 'user' );
         
         state.set( 'authtoken', null );
 

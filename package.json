@@ -1,6 +1,6 @@
 {
   "name": "hone",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "An SDK for interacting with Hone.",
   "main": "./index.js",
   "scripts": {
@@ -38,6 +38,8 @@
     "deep-diff": "^0.2.0",
     "delver": "0.0.10",
     "extend": "^2.0.0",
-    "localforage": "^1.0.4"
+    "localforage": "^1.0.4",
+    "ubid": "0.0.1",
+    "xdls": "^0.1.0"
   }
 }

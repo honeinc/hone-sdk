@@ -11,8 +11,12 @@ var Auth = require( './src/auth' );
 module.exports = Hone;
 
 var _defaults = {
-    domain: 'gohone.com:80',
+    domain: 'gohone.com',
     localstoragePrefix: '__hone__',
+    xdls: {
+        origin: 'gohone.com',
+        path: '/xdls.html'
+    },
     init: true
 };
 
