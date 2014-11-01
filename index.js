@@ -12,9 +12,8 @@ module.exports = Hone;
 
 var _defaults = {
     domain: 'gohone.com',
-    localstoragePrefix: '__hone__',
     xdls: {
-        origin: 'gohone.com',
+        origin: 'https://gohone.com',
         path: '/xdls.html'
     },
     init: true
@@ -73,9 +72,9 @@ Hone.prototype._setupAuth = function() {
     };
     
     // similarly, we expose auth methods
-    self.getUser = self.auth.getUser.bind( self.auth );
-    self.logout = self.auth.logout.bind( self.auth );
-
+    [ 'getUser', 'login', 'logout', 'requestLoginCode' ].forEach( function( method ) {
+        self[ method ] = self.auth[ method ].bind( self.auth );
+    } );
 };
 
 Hone.prototype._getAPI = function( callback ) {
