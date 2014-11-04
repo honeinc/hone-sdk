@@ -1,93 +1,171 @@
 
-# Hone Embed
+# Hone SDK
 
-Simple interactions with embedded Hone Questions and Quizzes.
-
+A Javascript library for interfacing with Hone.
 
 ## Installation
 
-If you copied the embeded code from the gohone.com interface you can just add a `data-hone` attribute to the iframe to enable the code to run against that embed.
+Include the SDK from our CDN:
 
 ```html
-<iframe src="..." data-hone data-resize="true"></iframe>
+<script src="//honefiles.global.ssl.fastly.net/sdk/hone-0.4.1.min.js"></script>
 ```
 
-optionally you can try out a beta feature that allows the iframe to resize its height dynamically to the content inside of the iframe by adding a `data-resize` attribute to the iframe.
-
-Include the script into your page ( script located in `build` directory ).
-
-```html
-<script src="/path-to/embed.js"></script>
-```
-
-## Usage
-
-After you load the script we export out a `hone` variable into the `window`, or global scope. First you need to initialize the script and then you can attach event bindings to that variable.
+## Example
 
 ```javascript
-hone.init( );
-hone.on('buy_button_clicked', function( e ){
-  console.log('Clicked the buy button');
-});
+// require the SDK
+var Hone = require( 'hone' );
+
+// create a new instance
+var hone = new Hone();
+
+// bind some events
+hone.on( 'login', function( e ) {
+    $( '.authenticated' ).show();
+    $( '.unauthenticated' ).hide();
+    $( '.my-username' ).html( e.user.nickname );
+} );
+
+hone.on( 'logout', function( e ) {
+    $( '.unauthenticated' ).show();
+    $( '.authenticated' ).hide();
+    $( '.my-username' ).html( '' );
+} );
+
+// let people get a Hone login code
+$( '.get-login-code-button' ).on( 'click', function( e ) {
+    var email = $( '.email' ).val();
+    var phone = $( '.phone' ).val();
+
+    if ( email && phone ) {
+        alert( 'Enter either an email address or a phone number, not both.' );
+        return;
+    }
+
+    // get a login code via email or phone
+    hone.requestLoginCode( {
+        email: email,
+        phone: phone
+    }, function( error ) {
+        if ( error ) {
+            alert( error );
+            return;
+        }
+
+        //show our login code field
+        $( '.email' ).hide();
+        $( '.phone' ).hide();
+        $( '.code' ).show();
+    } );    
+} );
+
+// once people have a code, let them log in
+$( '.submit-login-code-button' ).on( 'click', function( e ) {
+    var email = $( '.email' ).val();
+    var phone = $( '.phone' ).val();
+
+    if ( email && phone ) {
+        alert( 'Enter either an email address or a phone number, not both.' );
+        return;
+    }
+
+    var code = $( '.code' ).val();
+    if ( !code ) {
+        alert( 'You must enter a login code.' );
+        return;
+    }
+
+    hone.login( {
+        email: email,
+        phone: phone,
+        code: code
+    }, function( error ) {
+        if ( error ) {
+            alert( error );
+            return;
+        }
+
+        window.location = '/home';
+    } );
+} );
 ```
 
-## Available Events
+## Events
 
-- buy_button_clicked 
-- commented
-- facebook_invite_sent
-- facebook_invite_cancelled
-- facebook_linked
-- facebook_unlinked
-- invited
-- item_detail_closed
-- item_detail_opened
-- logged_in
-- logged_out
-- navigating
-- rendered
-- searched
-- signed_up
-- voted
+### login
 
-## Examples 
+Emitted when a user is authenticated via the login method and/or when Hone is initialized and a user is already logged in.
 
-Checkout the `examples` directory
+```javascript
+hone.on( 'login', function( e ) {
+    console.log( e );
+} );
+```
 
+```javascript
+e: {
+    user: {
+        _id: "508fb0bd3d8d1e2132000001",
+        email: "foo@example.com",
+        phone: null,
+        nickname: "Foo",
+        location: "Los Angeles, California"
+        photo: "http://www.gravatar.com/avatar/adf8a7dcc87a87fda8c"
+        ...
+    }
+}
+```
 
-## Creating a build
+### logout
 
-Also if you want a minified version, you can build one. You will need [nodejs]( http://nodejs.org ) and [grunt]( http://gruntjs.com/ ).
+Emitted when a user logs out. The event's user field is the user that just logged out.
 
-    # to install global grunt run
-    $ npm install -g grunt-cli 
+```javascript
+hone.on( 'logout', function( e ) {
+    console.log( e );
+} );
+```
 
-Once you have those installed you can then run in your teminal.
+```javascript
+e: {
+    user: {
+        _id: "508fb0bd3d8d1e2132000001",
+        email: "foo@example.com",
+        phone: null,
+        nickname: "Foo",
+        location: "Los Angeles, California"
+        photo: "http://www.gravatar.com/avatar/adf8a7dcc87a87fda8c"
+        ...
+    }
+}
+```
 
-    $ npm install
+## Methods
 
-This will install all the development dependecies and then run
+### init
 
-    $ grunt dist
+By default, Hone will initialize itself. However, if you have some more complex event handling/binding to do, you can take control of the init process by passing a boolean to the constructor:
 
-This will create a `dist` directory and compile a script with the name `hone-embed-0.1.0.js` that file will be compressed and read to use in the scrip tag.
+```javascript
+var hone = new Hone( {
+    init: false
+} );
+```
 
-## Contributing
+Once you are ready, you can then initialize Hone:
 
-You will need `grunt` cli.
+```javascript
+hone.init( function() {
+    // this is an option callback once init has completed
+} );
+```
 
-    $ npm install -g grunt-cli
+### requestLoginCode
 
-Then install dev dependecies
+### login
 
-    $ npm install
-
-To build embed script and run server for examples
-
-    $ grunt
-
-Once you have a working piece of code open a pull request. :+1:
-
+### logout
 
 ## License
 
