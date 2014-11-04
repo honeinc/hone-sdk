@@ -8,16 +8,13 @@ A Javascript library for interfacing with Hone.
 Include the SDK from our CDN:
 
 ```html
-<script src="//honefiles.global.ssl.fastly.net/sdk/hone-0.4.1.min.js"></script>
+<script src="//honefiles.global.ssl.fastly.net/sdk/hone-0.5.0.min.js"></script>
 ```
 
 ## Example
 
 ```javascript
-// require the SDK
-var Hone = require( 'hone' );
-
-// create a new instance
+// create a new instance, Hone is exported into the global space by default
 var hone = new Hone();
 
 // bind some events
