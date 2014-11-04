@@ -163,9 +163,65 @@ hone.init( function() {
 
 ### requestLoginCode
 
+Requests a login code via either email:
+
+```javascript
+hone.requestLoginCode( {
+    email: email
+}, callback );
+```
+
+or via phone number:
+
+```javascript
+hone.requestLoginCode( {
+    phone: phone
+}, callback );
+```
+
+A 6-digit login code will be sent to their email address or by text message to their phone.
+
+If the user does not exist, an error will result.
+
 ### login
 
+Logs into Hone using:
+
+email:
+
+```javascript
+hone.login( {
+    email: email
+    code: code
+}, callback );
+```
+
+phone:
+
+```javascript
+hone.login( {
+    phone: phone,
+    code: code
+}, callback );
+```
+
+Facebook (does not require login code):
+
+```javascript
+hone.login( {
+    facebook: {
+        id: facebookId,
+        token: facebookToken
+    }
+}, callback );
+```
 ### logout
+
+Logs the current user out of Hone:
+
+```javascript
+hone.logout( callback );
+```
 
 ## License
 
