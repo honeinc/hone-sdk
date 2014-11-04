@@ -11,7 +11,7 @@ var Auth = require( './src/auth' );
 module.exports = Hone;
 
 var _defaults = {
-    domain: 'gohone.com',
+    domain: 'gohone.com:80',
     xdls: {
         origin: 'https://gohone.com',
         path: '/xdls.html'
