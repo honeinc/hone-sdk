@@ -13,7 +13,7 @@ gulp.task( 'bundle', function() {
         sourceMaps: true,
         minify: true,
         debug: true,
-        expose: true
+        standalone: 'Hone'
     } );
 } );
 

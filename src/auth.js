@@ -9,8 +9,6 @@ var util = require( 'util' );
 var base64 = require( 'js-base64' ).Base64;
 var ubid = require( 'ubid' );
 
-var state = require( './state' );
-
 module.exports = Auth;
 
 function Auth( hone ) {
@@ -26,20 +24,20 @@ util.inherits( Auth, Emitter );
 Auth.prototype.getUser = function( callback ) {
     var self = this;
 
-    var loginEmitted = false;
-    
     self.xdls.getItem( 'user', function( error, user ) {
         if ( error ) {
             return; // we don't care if this errors, it's not authoritative
         }
 
-        if ( user && !loginEmitted ) {
-            state.set( 'user', user );
-            self.emit( 'login', {
-                user: user
-            } );
-            loginEmitted = true;
+        var existingUser = self.hone.state.get( 'user' );
+        if ( existingUser ) {
+            return;
         }
+        
+        self.hone.state.set( 'user', user );
+        self.emit( 'login', {
+            user: user
+        } );
     } );
     
     ajaja( {
@@ -51,26 +49,48 @@ Auth.prototype.getUser = function( callback ) {
             return;
         }
 
-        var existingUser = state.get( 'user' );
-        if ( !existingUser || ( existingUser && !user ) || diff( existingUser, user ) ) {
-            if ( existingUser ) {
-                self.emit( 'logout', {
-                    user: existingUser
-                } );
-            }
-
-            if ( user ) {
-                self.emit( 'login', {
-                    user: user
-                } );
-                loginEmitted = true;
-            }
+        var existingUser = self.hone.state.get( 'user' );
+        
+        // if there is no logged in user via the api, log out
+        if ( !user && existingUser ) {
+            self.hone.state.set( 'user', null );
+            self.xdls.setIem( 'user', null );
+            self.emit( 'logout', {
+                user: existingUser
+            } );
+        }        
+        // if the user has updated their settings
+        else if ( user && existingUser && existingUser._id === user._id && diff( existingUser, user ) ) {
+            self.hone.state.set( 'user', user );
+            self.xdls.setIem( 'user', user );
+            self.emit( 'user_updated', {
+                old: existingUser,
+                user: user
+            } );
         }
-
-        if ( user ) {
-            state.set( 'user', user );
+        // if the user is a different one than we knew about
+        else if ( user && existingUser && existingUser._id !== user._id ) {
+            self.emit( 'logout', {
+                user: existingUser
+            } );
+            self.hone.state.set( 'user', user );
+            self.xdls.setIem( 'user', user );
+            self.emit( 'login', {
+                user: user
+            } );
+        }
+        // if there was no existing user and we now have a user
+        else if ( user && !existingUser ) {
+            self.hone.state.set( 'user', user );
             self.xdls.setItem( 'user', user );
+            self.emit( 'login', { 
+                user: user
+            } );
         }
+        
+        // things we don't need to hande:
+        //   !user && !existingUser = no one logged in
+        //   user && existingUser && existingUser._id === user._id && !diff( existingUser, user ) = user logged in, same
         
         callback( null, user );
     } );
@@ -79,7 +99,7 @@ Auth.prototype.getUser = function( callback ) {
 Auth.prototype.logout = function( callback ) {
     var self = this;
 
-    var existingUser = state.get( 'user' );
+    var existingUser = self.hone.state.get( 'user' );
     if ( !existingUser ) {
         return;
     }
@@ -93,7 +113,7 @@ Auth.prototype.logout = function( callback ) {
             return;
         }
         
-        state.set( 'user', null );
+        self.hone.state.set( 'user', null );
         self.xdls.removeItem( 'user' );
         
         self.emit( 'logout', {
@@ -181,9 +201,9 @@ Auth.prototype.login = function( options, meta, callback ) {
                     return;
                 }
                 
-                var existingUser = state.get( 'user' );
+                var existingUser = self.hone.state.get( 'user' );
                 if ( existingUser ) {
-                    state.set( 'user', null );
+                    self.hone.state.set( 'user', null );
                     self.emit( 'logout', {
                         user: existingUser
                     } );                    
@@ -191,7 +211,7 @@ Auth.prototype.login = function( options, meta, callback ) {
                 
                 var user = response.user;
 
-                state.set( 'user', user );
+                self.hone.state.set( 'user', user );
                 self.xdls.setItem( 'user', user );
                 
                 self.emit( 'login', {

@@ -7,6 +7,7 @@ var extend = require( 'extend' );
 var util = require( 'util' );
 
 var Auth = require( './src/auth' );
+var State = require( './src/state' ).State;
 
 module.exports = Hone;
 
@@ -26,6 +27,7 @@ function Hone( options ) {
     self.options = extend( true, {}, _defaults, options );
     
     self.api = null;
+    self.state = new State( {} );
 
     self.auth = new Auth( self );
     self._setupAuth();

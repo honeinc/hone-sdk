@@ -14,7 +14,8 @@ module.exports = function( options ) {
     var baseName = path.basename( options.output, path.extname( options.output ) );
     
     var bundleOptions = {
-        debug: options.debug
+        debug: options.debug,
+        standalone: options.standalone
     };
     
     if ( typeof( options.require ) !== 'undefined' ) {
