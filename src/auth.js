@@ -34,6 +34,10 @@ Auth.prototype.getUser = function( callback ) {
             return;
         }
         
+        if ( !user ) {
+            return;
+        }
+        
         self.hone.state.set( 'user', user );
         self.emit( 'login', {
             user: user
