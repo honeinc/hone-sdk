@@ -58,7 +58,7 @@ Auth.prototype.getUser = function( callback ) {
         // if there is no logged in user via the api, log out
         if ( !user && existingUser ) {
             self.hone.state.set( 'user', null );
-            self.xdls.setIem( 'user', null );
+            self.xdls.setItem( 'user', null );
             self.emit( 'logout', {
                 user: existingUser
             } );
@@ -66,7 +66,7 @@ Auth.prototype.getUser = function( callback ) {
         // if the user has updated their settings
         else if ( user && existingUser && existingUser._id === user._id && diff( existingUser, user ) ) {
             self.hone.state.set( 'user', user );
-            self.xdls.setIem( 'user', user );
+            self.xdls.setItem( 'user', user );
             self.emit( 'user_updated', {
                 old: existingUser,
                 user: user
@@ -78,7 +78,7 @@ Auth.prototype.getUser = function( callback ) {
                 user: existingUser
             } );
             self.hone.state.set( 'user', user );
-            self.xdls.setIem( 'user', user );
+            self.xdls.setItem( 'user', user );
             self.emit( 'login', {
                 user: user
             } );
