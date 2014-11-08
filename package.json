@@ -2,6 +2,11 @@
   "name": "hone",
   "version": "1.0.1",
   "description": "An SDK for interacting with Hone.",
+  "homepage": "https://github.com/honeinc/hone-sdk",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/honeinc/hone-sdk.git"
+  },
   "main": "./index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
