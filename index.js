@@ -2,11 +2,13 @@
 
 var ajaja = require( 'ajaja' );
 var async = require( 'async' );
+var Delver = require( 'delver' );
 var Emitter = require( 'events' ).EventEmitter;
 var extend = require( 'extend' );
 var util = require( 'util' );
 
 var Auth = require( './src/auth' );
+var Preferences = require( './src/preferences' );
 var State = require( './src/state' ).State;
 
 module.exports = Hone;
@@ -32,6 +34,9 @@ function Hone( options ) {
     self.auth = new Auth( self );
     self._setupAuth();
 
+    self.preferences = new Preferences( self );
+    self._setupPreferences();
+    
     if ( self.options.init ) {
         // we wait a tick to give them an opportunity to bind events
         setTimeout( self.init.bind( self ), 0 );
@@ -66,17 +71,57 @@ Hone.prototype.url = function( path ) {
 Hone.prototype._setupAuth = function() {
     var self = this;
     
-    // we re-emit auth events as a convenience
-    var authEmit = self.auth.emit;
-    self.auth.emit = function() {
-        authEmit.apply( self.auth, arguments );
-        self.emit.apply( self, arguments );
-    };
+    self._multiplexEmit( self.auth, 'auth' );
+    self._multiplexBind( self.auth, [ 'getUser', 'login', 'logout', 'requestLoginCode' ] );
+};
+
+Hone.prototype._setupPreferences = function() {
+    var self = this;
     
-    // similarly, we expose auth methods
-    [ 'getUser', 'login', 'logout', 'requestLoginCode' ].forEach( function( method ) {
-        self[ method ] = self.auth[ method ].bind( self.auth );
+    self._multiplexEmit( self.preferences, 'preferences' );
+};
+
+Hone.prototype._multiplexBind = function( target, methods, namespace ) {
+    var self = this;
+    
+    methods.forEach( function( method ) {
+        var selfTarget = self;
+
+        if ( namespace ) {
+            selfTarget = Delver.get( self, namespace );
+            if ( !selfTarget ) {
+                selfTarget = {};
+                Delver.set( self, namespace, selfTarget );
+            }
+        }
+        
+        var targetFunction = target[ method ];
+        if ( !targetFunction ) {
+            throw new Error( 'Invalid method on target (' + ( target.constructor ? target.constructor.name : 'unknown' ) + '): ' + method );
+        }
+        
+        selfTarget[ method ] = targetFunction.bind( target );
     } );
+};
+
+Hone.prototype._multiplexEmit = function( emitter, namespace ) {
+    var self = this;
+    
+    // we re-emit events as a convenience
+    var originalEmit = emitter.emit;
+    emitter.emit = function() {
+        originalEmit.apply( emitter, arguments );
+
+        var args = arguments;
+        if ( namespace ) {
+            args = Array.prototype.slice.call( arguments, 0 );
+            var eventName = args.shift();
+            eventName = namespace + '.' + eventName;
+            args.unshift( eventName );
+        }
+
+        self.emit.apply( self, args );
+    };
 };
 
 Hone.prototype._getAPI = function( callback ) {

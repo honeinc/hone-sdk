@@ -18,13 +18,13 @@ Include the SDK from our CDN:
 var hone = new Hone();
 
 // bind some events
-hone.on( 'login', function( e ) {
+hone.on( 'auth.login', function( e ) {
     $( '.authenticated' ).show();
     $( '.unauthenticated' ).hide();
     $( '.my-username' ).html( e.user.nickname );
 } );
 
-hone.on( 'logout', function( e ) {
+hone.on( 'auth.logout', function( e ) {
     $( '.unauthenticated' ).show();
     $( '.authenticated' ).hide();
     $( '.my-username' ).html( '' );
@@ -90,12 +90,12 @@ $( '.submit-login-code-button' ).on( 'click', function( e ) {
 
 ## Events
 
-### login
+### auth.login
 
 Emitted when a user is authenticated via the login method and/or when Hone is initialized and a user is already logged in.
 
 ```javascript
-hone.on( 'login', function( e ) {
+hone.on( 'auth.login', function( e ) {
     console.log( e );
 } );
 ```
@@ -114,12 +114,12 @@ e: {
 }
 ```
 
-### logout
+### auth.logout
 
 Emitted when a user logs out. The event's user field is the user that just logged out.
 
 ```javascript
-hone.on( 'logout', function( e ) {
+hone.on( 'auth.logout', function( e ) {
     console.log( e );
 } );
 ```
@@ -137,6 +137,10 @@ e: {
     }
 }
 ```
+
+### preferences.loaded
+
+Emitted when a user's preferences have been loaded.
 
 ## Methods
 
