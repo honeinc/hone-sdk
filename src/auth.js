@@ -44,6 +44,19 @@ Auth.prototype.getUser = function( callback ) {
         } );
     } );
     
+    self.xdls.getItem( 'authtoken', function( error, authtoken ) {
+        if ( error ) {
+            return;
+        }
+        
+        var existingUser = self.hone.state.get( 'user' );
+        if ( existingUser ) {
+            return;
+        }
+        
+        self.hone.state.set( 'authtoken', authtoken );
+    } );
+    
     ajaja( {
         method: 'GET',
         url: self.hone.url( self.hone.api.users.me )
@@ -58,7 +71,11 @@ Auth.prototype.getUser = function( callback ) {
         // if there is no logged in user via the api, log out
         if ( !user && existingUser ) {
             self.hone.state.set( 'user', null );
-            self.xdls.setItem( 'user', null );
+            self.hone.state.set( 'authtoken', null );
+
+            self.xdls.removeItem( 'user' );
+            self.xdls.removeItem( 'authtoken' );
+
             self.emit( 'logout', {
                 user: existingUser
             } );
@@ -118,7 +135,10 @@ Auth.prototype.logout = function( callback ) {
         }
         
         self.hone.state.set( 'user', null );
+        self.hone.state.set( 'authtoken', null );
+
         self.xdls.removeItem( 'user' );
+        self.xdls.removeItem( 'authtoken' );
         
         self.emit( 'logout', {
             user: existingUser
@@ -216,8 +236,11 @@ Auth.prototype.login = function( options, meta, callback ) {
                 var user = response.user;
 
                 self.hone.state.set( 'user', user );
-                self.xdls.setItem( 'user', user );
+                self.hone.state.set( 'authtoken', response.authtoken );
                 
+                self.xdls.setItem( 'user', user );
+                self.xdls.setItem( 'authtoken', response.authtoken );
+
                 self.emit( 'login', {
                     user: user
                 } );
@@ -226,5 +249,43 @@ Auth.prototype.login = function( options, meta, callback ) {
             } );
         }
     ], callback );
+};
+
+Auth.prototype.updateUser = function( data, callback ) {
+    var self = this;
+
+    var user = self.hone.state.get( 'user' );
+    if ( !user ) {
+        callback( 'No user is logged in!', null );
+        return;
+    }
+
+    ajaja( {
+        url: self.hone.url( self.hone.api.users.user.replace( '{{id}}', user._id ) ),
+        method: 'PUT',
+        headers: {
+            'hone-authtoken': self.hone.state.get( 'authtoken' )
+        },
+        data: data
+    }, function( error, updatedUser ) {
+        if ( error ) {
+            callback( error );
+            return;
+        }
+
+        var oldUser = user;
+
+        self.hone.state.set( 'user', updatedUser );
+
+        self.emit( 'user_updated', {
+            user: updatedUser,
+            old: oldUser
+        } );
+        
+        callback( null, {
+            user: updatedUser,
+            old: user
+        } );
+    } );
 };
 

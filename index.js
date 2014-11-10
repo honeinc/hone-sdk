@@ -72,7 +72,7 @@ Hone.prototype._setupAuth = function() {
     var self = this;
     
     self._multiplexEmit( self.auth, 'auth' );
-    self._multiplexBind( self.auth, [ 'getUser', 'login', 'logout', 'requestLoginCode' ] );
+    self._multiplexBind( self.auth, [ 'getUser', 'login', 'logout', 'requestLoginCode', 'updateUser' ] );
 };
 
 Hone.prototype._setupPreferences = function() {
