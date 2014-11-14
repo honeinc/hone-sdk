@@ -3,6 +3,7 @@
 var ajaja = require( 'ajaja' );
 var async = require( 'async' );
 var Emitter = require( 'events' ).EventEmitter;
+var extend = require( 'extend' );
 var diff = require( 'deep-diff' ).diff;
 var XDLS = require( 'xdls' );
 var util = require( 'util' );
@@ -20,6 +21,88 @@ function Auth( hone ) {
 }
 
 util.inherits( Auth, Emitter );
+
+Auth.prototype._getUniqueId = function( output, callback ) {
+    var self = this;
+    
+    ubid.get( function( error, data ) {
+        if ( error ) {
+            callback( error );
+            return;
+        }
+
+        if ( data.storageSupported ) {
+            output = data.random ? data.random.signature : ( data.canvas ? data.canvas.signature : ( data.browser ? data.browser.signature : null ) );
+        }
+        else {
+            output = data.canvas ? data.canvas.signature : ( data.browser ? data.browser.signature : null );
+        }
+
+        callback();
+    }, self.xdls );
+};
+
+Auth.prototype._onUserLogin = function( user, callback ) {
+    var self = this;
+    
+    if ( !user ) {
+        if ( callback ) {
+            callback();
+        }
+        return;
+    }
+    
+    var existingUser = self.hone.state.get( 'user' );
+
+    // if there is no logged in user via the api, log out
+    if ( !user && existingUser ) {
+        self.hone.state.set( 'user', null );
+        self.hone.state.set( 'authtoken', null );
+
+        self.xdls.removeItem( 'user' );
+        self.xdls.removeItem( 'authtoken' );
+
+        self.emit( 'logout', {
+            user: existingUser
+        } );
+    }        
+    // if the user has updated their settings
+    else if ( user && existingUser && existingUser._id === user._id && diff( existingUser, user ) ) {
+        self.hone.state.set( 'user', user );
+        self.xdls.setItem( 'user', user );
+        self.emit( 'user_updated', {
+            old: existingUser,
+            user: user
+        } );
+    }
+    // if the user is a different one than we knew about
+    else if ( user && existingUser && existingUser._id !== user._id ) {
+        self.emit( 'logout', {
+            user: existingUser
+        } );
+        self.hone.state.set( 'user', user );
+        self.xdls.setItem( 'user', user );
+        self.emit( 'login', {
+            user: user
+        } );
+    }
+    // if there was no existing user and we now have a user
+    else if ( user && !existingUser ) {
+        self.hone.state.set( 'user', user );
+        self.xdls.setItem( 'user', user );
+        self.emit( 'login', { 
+            user: user
+        } );
+    }
+
+    // things we don't need to hande:
+    //   !user && !existingUser = no one logged in
+    //   user && existingUser && existingUser._id === user._id && !diff( existingUser, user ) = user logged in, same
+    
+    if ( callback ) {
+        callback();
+    }
+};
 
 Auth.prototype.getUser = function( callback ) {
     var self = this;
@@ -66,54 +149,51 @@ Auth.prototype.getUser = function( callback ) {
             return;
         }
 
-        var existingUser = self.hone.state.get( 'user' );
-        
-        // if there is no logged in user via the api, log out
-        if ( !user && existingUser ) {
-            self.hone.state.set( 'user', null );
-            self.hone.state.set( 'authtoken', null );
-
-            self.xdls.removeItem( 'user' );
-            self.xdls.removeItem( 'authtoken' );
-
-            self.emit( 'logout', {
-                user: existingUser
-            } );
-        }        
-        // if the user has updated their settings
-        else if ( user && existingUser && existingUser._id === user._id && diff( existingUser, user ) ) {
-            self.hone.state.set( 'user', user );
-            self.xdls.setItem( 'user', user );
-            self.emit( 'user_updated', {
-                old: existingUser,
-                user: user
-            } );
-        }
-        // if the user is a different one than we knew about
-        else if ( user && existingUser && existingUser._id !== user._id ) {
-            self.emit( 'logout', {
-                user: existingUser
-            } );
-            self.hone.state.set( 'user', user );
-            self.xdls.setItem( 'user', user );
-            self.emit( 'login', {
-                user: user
-            } );
-        }
-        // if there was no existing user and we now have a user
-        else if ( user && !existingUser ) {
-            self.hone.state.set( 'user', user );
-            self.xdls.setItem( 'user', user );
-            self.emit( 'login', { 
-                user: user
-            } );
-        }
-        
-        // things we don't need to hande:
-        //   !user && !existingUser = no one logged in
-        //   user && existingUser && existingUser._id === user._id && !diff( existingUser, user ) = user logged in, same
-        
+        self._onUserLogin( user );
         callback( null, user );
+    } );
+};
+
+Auth.prototype.signup = function( options, callback ) {
+    var self = this;
+
+    var data = extend( {}, options );
+    var anonymousId = null;
+    var user = null;
+    
+    async.series( [
+        self._getUniqueId.bind( self, anonymousId ),
+        
+        // do the login
+        function( next ) {
+            ajaja( {
+                url: self.hone.url( self.hone.api.users.create ),
+                method: 'POST',
+                headers: {
+                    'hone-anonymous-id': anonymousId
+                },
+                data: data
+            }, function( error, _user ) {
+                user = !error ? _user : null;
+                next( error );
+            } );
+        },
+        
+        // handle the logged in user
+        function( next ) {
+            // can't just bind this because user isn't set at the time of the bind
+            self._onUserLogin( user, next );
+        }
+        
+    ], function( error ) {
+        if ( error ) {
+            callback( error );
+            return;
+        }
+
+        self.emit( 'signup', {
+            user: user
+        } );
     } );
 };
 
@@ -160,7 +240,7 @@ Auth.prototype.requestLoginCode = function( options, callback ) {
     }, callback );
 };
 
-Auth.prototype.login = function( options, meta, callback ) {
+Auth.prototype.login = function( options, callback ) {
     var self = this;
     var authorization = null;
     var anonymousId = null;
@@ -186,28 +266,7 @@ Auth.prototype.login = function( options, meta, callback ) {
         },
         
         // get unique id
-        function( next ) {
-            if ( anonymousId ) {
-                next();
-                return;
-            }
-            
-            ubid.get( function( error, data ) {
-                if ( error ) {
-                    next( error );
-                    return;
-                }
-                
-                if ( data.storageSupported ) {
-                    anonymousId = data.random ? data.random.signature : ( data.canvas ? data.canvas.signature : ( data.browser ? data.browser.signature : null ) );
-                }
-                else {
-                    anonymousId = data.canvas ? data.canvas.signature : ( data.browser ? data.browser.signature : null );
-                }
-                
-                next();
-            }, self.xdls );
-        },
+        self._getUniqueId.bind( self, anonymousId ),
         
         // try to login
         function( next ) {

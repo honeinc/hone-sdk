@@ -47,3 +47,27 @@ Preferences.prototype.onLogout = function() {
     
     self.emit( 'unloaded', {} );    
 };
+
+Preferences.prototype.update = function ( data, callback ) {
+    var self = this;
+
+    var user = self.hone.state.get( 'user' );
+    if ( !user ) {
+        callback( 'No user is logged in.' );
+        return;
+    }
+
+    ajaja( {
+        url: self.hone.url( self.hone.api.preferences.prefs.replace( '{{userid}}', user._id ) ),
+        method: 'PUT',
+        data: data
+    }, function( error, _preferences ) {
+        if ( !error ) {
+            self.preferences = _preferences;
+
+            self.emit( 'updated', self.preferences );
+        }
+        
+        callback( error );
+    } );
+};    
