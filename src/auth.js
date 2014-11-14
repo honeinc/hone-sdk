@@ -187,13 +187,20 @@ Auth.prototype.signup = function( options, callback ) {
         
     ], function( error ) {
         if ( error ) {
-            callback( error );
+            self.emit( 'error', error );
+            if ( callback ) { 
+                callback( error );
+            }
             return;
         }
 
         self.emit( 'signup', {
             user: user
         } );
+        
+        if ( callback ) {
+            callback( null, user );
+        }
     } );
 };
 
@@ -210,7 +217,10 @@ Auth.prototype.logout = function( callback ) {
         method: 'DELETE'
     }, function( error ) {
         if ( error ) {
-            callback( error );
+            self.emit( 'error', error );
+            if ( callback ) {
+                callback( error );
+            }
             return;
         }
         
