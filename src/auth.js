@@ -25,6 +25,12 @@ util.inherits( Auth, Emitter );
 Auth.prototype._getUniqueId = function( output, callback ) {
     var self = this;
     
+    output = self.hone.state.get( 'uniqueId' );
+    if ( output ) {
+        callback();
+        return;
+    }
+    
     ubid.get( function( error, data ) {
         if ( error ) {
             callback( error );
@@ -38,6 +44,8 @@ Auth.prototype._getUniqueId = function( output, callback ) {
             output = data.canvas ? data.canvas.signature : ( data.browser ? data.browser.signature : null );
         }
 
+        self.hone.state.set( 'uniqueId', output );
+        
         callback();
     }, self.xdls );
 };
