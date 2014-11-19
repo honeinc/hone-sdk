@@ -17,7 +17,7 @@ function Auth( hone ) {
     Emitter.call( self );
     
     self.hone = hone;
-    self.xdls = new XDLS( hone.options.xdls );
+    self.xdls = new XDLS( hone.options.xdls );    
 }
 
 util.inherits( Auth, Emitter );
@@ -148,18 +148,27 @@ Auth.prototype.getUser = function( callback ) {
         self.hone.state.set( 'authtoken', authtoken );
     } );
     
-    ajaja( {
-        method: 'GET',
-        url: self.hone.url( self.hone.api.users.me )
-    }, function( error, user ) {
-        if ( error && error.code != 400 ) {
-            callback( error );
-            return;
-        }
+    function _getUserAuthoritative() {
+        ajaja( {
+            method: 'GET',
+            url: self.hone.url( self.hone.api.users.me )
+        }, function( error, user ) {
+            if ( error && error.code != 400 ) {
+                callback( error );
+                return;
+            }
 
-        self._onUserLogin( user );
-        callback( null, user );
-    } );
+            self._onUserLogin( user );
+            callback( null, user );
+        } );
+    }
+    
+    if ( self.hone.api ) {
+        _getUserAuthoritative();
+    }
+    else {
+        self.hone.once( 'api_loaded', _getUserAuthoritative );
+    }
 };
 
 Auth.prototype.signup = function( options, callback ) {

@@ -22,6 +22,11 @@ util.inherits( Preferences, Emitter );
 Preferences.prototype.onLogin = function( event ) {
     var self = this;
     
+    if ( !self.hone.api ) {
+        self.hone.once( 'api_loaded', self.onLogin.bind( self ) );
+        return;
+    }
+    
     ajaja( {
         url: self.hone.url( self.hone.api.preferences.prefs.replace( '{{userid}}', event.user._id ) ),
         method: 'GET'

@@ -50,9 +50,10 @@ util.inherits( Hone, Emitter );
 Hone.prototype.init = function( callback ) {
     var self = this;
     
-    async.series( [
-        self._getAPI.bind( self ),
-        self.auth.getUser.bind( self.auth )
+    // these should tolerate being called in parallel, since the auth module can listen for api_loaded if necessary
+    async.parallel( [
+        self.auth.getUser.bind( self.auth ),
+        self._getAPI.bind( self )
     ], function( error ) {
         if ( error ) {
             self.emit( 'error', error );
