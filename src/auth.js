@@ -17,7 +17,8 @@ function Auth( hone ) {
     Emitter.call( self );
     
     self.hone = hone;
-    self.xdls = new XDLS( hone.options.xdls );    
+    self.xdls = new XDLS( hone.options.xdls );
+    self.xdls.init(); // pre-init the iframe, etc.
 }
 
 util.inherits( Auth, Emitter );
