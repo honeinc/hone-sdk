@@ -224,6 +224,43 @@ Logs the current user out of Hone:
 hone.logout( callback );
 ```
 
+## Preferences
+
+### hone.preferences.get( key[, default] )
+
+Returns the given key from the user's preferences.
+
+### hone.preferences.set( key, value )
+
+Sets the given key in the user's preferences, persisting the setting immediately to the server.
+
+### hone.preferences.update( data, callback )
+
+Makes the changes specified in *data* to the user's preferences. Eg:
+
+```javascript
+hone.preferences.update( {
+    foo: 'bar',
+    blah: {
+        baz: 'yak'
+    }
+}, function( error ) {
+    if ( error ) {
+        console.error( error );
+    }
+} );
+```
+
+### event: updated
+
+Emitted when the user's preferences have been updated. Eg:
+
+```javascript
+hone.preferences.on( 'updated', function() {
+    console.log( 'User preferences updated!' );
+} );
+```
+
 ## License
 
 The MIT License (MIT)

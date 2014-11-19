@@ -1,6 +1,7 @@
 'use strict';
 
 var ajaja = require( 'ajaja' );
+var Delver = require( 'delver' );
 var Emitter = require( 'events' ).EventEmitter;
 var util = require( 'util' );
 
@@ -11,6 +12,7 @@ function Preferences( hone ) {
     Emitter.call( self );
 
     self.hone = hone;
+    self._preferences = null;
     
     self.hone.on( 'auth.login', self.onLogin.bind( self ) );
     self.hone.on( 'auth.logout', self.onLogout.bind( self ) );
@@ -29,13 +31,11 @@ Preferences.prototype.onLogin = function( event ) {
             return;
         }
         
-        self.preferences = preferences;
-        if ( !self.preferences.data ) {
-            self.preferences.data = {};
-        }
-        
+        self._preferences = preferences;
+        self._preferences.data = self._preferences.data || {};
+
         self.emit( 'loaded', {
-            preferences: preferences
+            preferences: self._preferences.data
         } );
     } );
 };
@@ -43,9 +43,9 @@ Preferences.prototype.onLogin = function( event ) {
 Preferences.prototype.onLogout = function() {
     var self = this;
     
-    self.preferences = null;
+    self._preferences = null;
     
-    self.emit( 'unloaded', {} );    
+    self.emit( 'unloaded' );
 };
 
 Preferences.prototype.update = function ( data, callback ) {
@@ -63,11 +63,37 @@ Preferences.prototype.update = function ( data, callback ) {
         data: data
     }, function( error, _preferences ) {
         if ( !error ) {
-            self.preferences = _preferences;
-
-            self.emit( 'updated', self.preferences );
+            self._preferences = _preferences;
+            self.emit( 'updated' );
         }
         
         callback( error );
     } );
 };    
+
+Preferences.prototype.get = function( key, _default ) {
+    var self = this;
+    if ( !self._preferences ) {
+        throw new Error( 'No current preferences loaded.' );
+    }
+    
+    return Delver.get( self._preferences.data, key, _default );
+};
+
+Preferences.prototype.set = function( key, value ) {
+    var self = this;
+    if ( !self._preferences ) {
+        throw new Error( 'No current preferences loaded.' );
+    }
+
+    var data = {};
+    data[ key ] = value;
+    self.update( data, function( error ) {
+        if ( error ) {
+            self.emit( 'error', error );
+            return;
+        }
+    } );
+    
+    return Delver.set( self._preferences.data, key, value );
+};
