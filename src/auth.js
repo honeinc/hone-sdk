@@ -244,17 +244,27 @@ Auth.prototype.logout = function( callback ) {
         
         self.hone.state.set( 'user', null );
         self.hone.state.set( 'authtoken', null );
-
-        self.xdls.removeItem( 'user' );
-        self.xdls.removeItem( 'authtoken' );
         
-        self.emit( 'logout', {
-            user: existingUser
-        } );
+        async.parallel( [
+            self.xdls.removeItem.bind( self.xdls, 'user' ),
+            self.xdls.removeItem.bind( self.xdls, 'authtoken' )
+        ], function( error ) {
+            if ( error ) {
+                self.emit( 'error', error );
+                if ( callback ) {
+                    callback( error );
+                }
+                return;
+            }
 
-        if ( callback ) {
-            callback();
-        }
+            self.emit( 'logout', {
+                user: existingUser
+            } );
+
+            if ( callback ) {
+                callback();
+            }
+        } );
     } );
 };
 
