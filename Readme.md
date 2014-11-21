@@ -8,8 +8,12 @@ A Javascript library for interfacing with Hone.
 Include the SDK from our CDN:
 
 ```html
-<script src="//honefiles.global.ssl.fastly.net/sdk/hone-0.5.0.min.js"></script>
+<script src="//honefiles.global.ssl.fastly.net/sdk/hone-1.5.0.min.js"></script>
 ```
+
+## Documentation
+
+You can read documentation [here](docs/).
 
 ## Example
 
@@ -88,60 +92,6 @@ $( '.submit-login-code-button' ).on( 'click', function( e ) {
 } );
 ```
 
-## Events
-
-### auth.login
-
-Emitted when a user is authenticated via the login method and/or when Hone is initialized and a user is already logged in.
-
-```javascript
-hone.on( 'auth.login', function( e ) {
-    console.log( e );
-} );
-```
-
-```javascript
-e: {
-    user: {
-        _id: "508fb0bd3d8d1e2132000001",
-        email: "foo@example.com",
-        phone: null,
-        nickname: "Foo",
-        location: "Los Angeles, California"
-        photo: "http://www.gravatar.com/avatar/adf8a7dcc87a87fda8c"
-        ...
-    }
-}
-```
-
-### auth.logout
-
-Emitted when a user logs out. The event's user field is the user that just logged out.
-
-```javascript
-hone.on( 'auth.logout', function( e ) {
-    console.log( e );
-} );
-```
-
-```javascript
-e: {
-    user: {
-        _id: "508fb0bd3d8d1e2132000001",
-        email: "foo@example.com",
-        phone: null,
-        nickname: "Foo",
-        location: "Los Angeles, California"
-        photo: "http://www.gravatar.com/avatar/adf8a7dcc87a87fda8c"
-        ...
-    }
-}
-```
-
-### preferences.loaded
-
-Emitted when a user's preferences have been loaded.
-
 ## Methods
 
 ### init
@@ -159,105 +109,6 @@ Once you are ready, you can then initialize Hone:
 ```javascript
 hone.init( function() {
     // this is an option callback once init has completed
-} );
-```
-
-### requestLoginCode
-
-Requests a login code via either email:
-
-```javascript
-hone.requestLoginCode( {
-    email: email
-}, callback );
-```
-
-or via phone number:
-
-```javascript
-hone.requestLoginCode( {
-    phone: phone
-}, callback );
-```
-
-A 6-digit login code will be sent to their email address or by text message to their phone.
-
-If the user does not exist, an error will result.
-
-### login
-
-Logs into Hone using:
-
-email:
-
-```javascript
-hone.login( {
-    email: email
-    code: code
-}, callback );
-```
-
-phone:
-
-```javascript
-hone.login( {
-    phone: phone,
-    code: code
-}, callback );
-```
-
-Facebook (does not require login code):
-
-```javascript
-hone.login( {
-    facebook: {
-        id: facebookId,
-        token: facebookToken
-    }
-}, callback );
-```
-### logout
-
-Logs the current user out of Hone:
-
-```javascript
-hone.logout( callback );
-```
-
-## Preferences
-
-### hone.preferences.get( key[, default] )
-
-Returns the given key from the user's preferences.
-
-### hone.preferences.set( key, value )
-
-Sets the given key in the user's preferences, persisting the setting immediately to the server.
-
-### hone.preferences.update( data, callback )
-
-Makes the changes specified in *data* to the user's preferences. Eg:
-
-```javascript
-hone.preferences.update( {
-    foo: 'bar',
-    blah: {
-        baz: 'yak'
-    }
-}, function( error ) {
-    if ( error ) {
-        console.error( error );
-    }
-} );
-```
-
-### event: updated
-
-Emitted when the user's preferences have been updated. Eg:
-
-```javascript
-hone.preferences.on( 'updated', function() {
-    console.log( 'User preferences updated!' );
 } );
 ```
 

@@ -20,8 +20,9 @@ function Auth( hone ) {
     self.xdls = new XDLS( hone.options.xdls );
     self.xdls.init(); // pre-init the iframe, etc.
 }
-
 util.inherits( Auth, Emitter );
+
+function noop() {}
 
 Auth.prototype._getUniqueId = function( output, callback ) {
     var self = this;
@@ -113,41 +114,49 @@ Auth.prototype._onUserLogin = function( user, callback ) {
     }
 };
 
-Auth.prototype.getUser = function( callback ) {
+Auth.prototype.getUser = function( callback, force ) {
     var self = this;
 
-    self.xdls.getItem( 'user', function( error, user ) {
-        if ( error ) {
-            return; // we don't care if this errors, it's not authoritative
-        }
+    var existingUser = self.hone.state.get( 'user' );
+    if ( !force && existingUser ) {
+        callback( null, existingUser );
+        return;
+    }
 
-        var existingUser = self.hone.state.get( 'user' );
-        if ( existingUser ) {
-            return;
-        }
-        
-        if ( !user ) {
-            return;
-        }
-        
-        self.hone.state.set( 'user', user );
-        self.emit( 'login', {
-            user: user
+    if ( !force ) {
+        self.xdls.getItem( 'user', function( error, user ) {
+            if ( error ) {
+                return; // we don't care if this errors, it's not authoritative
+            }
+
+            var existingUser = self.hone.state.get( 'user' );
+            if ( existingUser ) {
+                return;
+            }
+
+            if ( !user ) {
+                return;
+            }
+
+            self.hone.state.set( 'user', user );
+            self.emit( 'login', {
+                user: user
+            } );
         } );
-    } );
-    
-    self.xdls.getItem( 'authtoken', function( error, authtoken ) {
-        if ( error ) {
-            return;
-        }
-        
-        var existingUser = self.hone.state.get( 'user' );
-        if ( existingUser ) {
-            return;
-        }
-        
-        self.hone.state.set( 'authtoken', authtoken );
-    } );
+
+        self.xdls.getItem( 'authtoken', function( error, authtoken ) {
+            if ( error ) {
+                return;
+            }
+
+            var existingUser = self.hone.state.get( 'user' );
+            if ( existingUser ) {
+                return;
+            }
+
+            self.hone.state.set( 'authtoken', authtoken );
+        } );
+    }
     
     function _getUserAuthoritative() {
         ajaja( {
@@ -225,6 +234,8 @@ Auth.prototype.signup = function( options, callback ) {
 Auth.prototype.logout = function( callback ) {
     var self = this;
 
+    callback = callback || noop;
+    
     var existingUser = self.hone.state.get( 'user' );
     if ( !existingUser ) {
         return;
@@ -236,9 +247,7 @@ Auth.prototype.logout = function( callback ) {
     }, function( error ) {
         if ( error ) {
             self.emit( 'error', error );
-            if ( callback ) {
-                callback( error );
-            }
+            callback( error );
             return;
         }
         
@@ -251,9 +260,7 @@ Auth.prototype.logout = function( callback ) {
         ], function( error ) {
             if ( error ) {
                 self.emit( 'error', error );
-                if ( callback ) {
-                    callback( error );
-                }
+                callback( error );
                 return;
             }
 
@@ -261,15 +268,15 @@ Auth.prototype.logout = function( callback ) {
                 user: existingUser
             } );
 
-            if ( callback ) {
-                callback();
-            }
+            callback();
         } );
     } );
 };
 
 Auth.prototype.requestLoginCode = function( options, callback ) {
     var self = this;
+    
+    callback = callback || noop;
     
     ajaja( {
         url: self.hone.url( self.hone.api.sessions.logincode ),
@@ -283,6 +290,8 @@ Auth.prototype.login = function( options, callback ) {
     var authorization = null;
     var anonymousId = null;
 
+    callback = callback || noop;
+    
     async.series( [
         // setup login auth
         function( next ) {
@@ -351,6 +360,8 @@ Auth.prototype.login = function( options, callback ) {
 Auth.prototype.updateUser = function( data, callback ) {
     var self = this;
 
+    callback = callback || noop;
+    
     var user = self.hone.state.get( 'user' );
     if ( !user ) {
         callback( 'No user is logged in!', null );
