@@ -8,6 +8,7 @@ var extend = require( 'extend' );
 var util = require( 'util' );
 
 var Auth = require( './src/auth' );
+var DataStore = require( './src/datastore' );
 var Preferences = require( './src/preferences' );
 var State = require( './src/state' ).State;
 
@@ -32,11 +33,16 @@ function Hone( options ) {
     self.state = new State( {} );
 
     self.auth = new Auth( self );
-    self._setupAuth();
+    self._multiplexEmit( self.auth, 'auth' );
+    self._multiplexBind( self.auth, [ 'getUser', 'login', 'logout', 'signup', 'requestLoginCode', 'updateUser' ] );
 
     self.preferences = new Preferences( self );
-    self._setupPreferences();
-    
+    self._multiplexEmit( self.preferences, 'preferences' );
+
+    self.datastore = new DataStore( self );
+    self._multiplexEmit( self.datastore, 'datastore' );
+    self._multiplexBind( self.datastore, [ 'get' ] );
+
     if ( self.options.init ) {
         // we wait a tick to give them an opportunity to bind events
         setTimeout( self.init.bind( self ), 0 );
@@ -67,19 +73,6 @@ Hone.prototype.init = function( callback ) {
 
 Hone.prototype.url = function( path ) {
     return '//' + this.options.domain + path;
-};
-
-Hone.prototype._setupAuth = function() {
-    var self = this;
-    
-    self._multiplexEmit( self.auth, 'auth' );
-    self._multiplexBind( self.auth, [ 'getUser', 'login', 'logout', 'signup', 'requestLoginCode', 'updateUser' ] );
-};
-
-Hone.prototype._setupPreferences = function() {
-    var self = this;
-    
-    self._multiplexEmit( self.preferences, 'preferences' );
 };
 
 Hone.prototype._multiplexBind = function( target, methods, namespace ) {
