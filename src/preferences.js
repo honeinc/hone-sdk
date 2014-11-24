@@ -12,6 +12,7 @@ function Preferences( hone ) {
     Emitter.call( self );
 
     self.hone = hone;
+    self.loaded = false;
     self._preferences = null;
     
     self.hone.on( 'auth.login', self.onLogin.bind( self ) );
@@ -38,6 +39,7 @@ Preferences.prototype.onLogin = function( event ) {
         
         self._preferences = preferences;
         self._preferences.data = self._preferences.data || {};
+        self.loaded = true;
 
         self.emit( 'loaded', {
             preferences: self._preferences.data
@@ -49,6 +51,7 @@ Preferences.prototype.onLogout = function() {
     var self = this;
     
     self._preferences = null;
+    self.loaded = false;
     
     self.emit( 'unloaded' );
 };
