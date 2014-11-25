@@ -2,10 +2,10 @@
 
 ## <a name="methods-overview"></a> Methods Overview
 
-| method                                        | signature                          | short description                                                   |
-| :-------------------------------------------- | :--------------------------------- | :------------------------------------------------------------------ |
-| [get](#methods.get)                           | get( type, id, callback[, force] ) | Gets the object of the given type and id.                           |
-| [*object*.save](#methods.save)                | *object*.save( [callback] )        | Saves the given object to the server.                               |
+| method                                        | signature                   | short description                                                   |
+| :-------------------------------------------- | :-------------------------- | :------------------------------------------------------------------ |
+| [get](#methods.get)                           | get( options, callback )    | Gets object(s) based on specified options.                          |
+| [*object*.save](#methods.save)                | *object*.save( [callback] ) | Saves the given object to the server.                               |
 
 ## <a name="events-overview"></a> Events Overview
 
@@ -16,24 +16,97 @@
 
 ## <a name="methods"></a> Methods
 
-### <a name="methods.get"></a> get( type, id, callback[, force] )
+### <a name="methods.get"></a> get( options, callback )
 
 ```javascript
-hone.get( type, id, callback[, force] )
+hone.get( options, callback )
 ```
 
-Gets the object specified by type and id from the server. If the optional 'force' parameter is set to true, this will force a get from the server, bypassing the cache.
+Gets object(s) based on the options specified.
 
-Example:
+| option          | description                                                           |
+| :-------------- | :-------------------------------------------------------------------- |
+| type (string)   | Specifies the type of object to retrieve.                             |
+| id (string)     | Specifies a single id to retrieve.                                    |
+| query (object)  | Specified a query to search against, will return an array of results. |
+| force (boolean) | Ignores the cache.                                                    |
+
+Example, fetching a single object:
 
 ```javascript
-hone.get( 'Quiz', '543d7522b9a138627fcc12c9', function( error, quiz ) {
+hone.get( {
+    type: 'Quiz',
+    id: '543d7522b9a138627fcc12c9'
+}, function( error, quiz ) {
     if ( error ) {
         console.error( error );
         return;
     }
     
     console.log( quiz.title );
+} );
+```
+
+Or, you can search for items using a query, eg:
+
+```javascript
+hone.get( {
+    type: 'Quiz',
+    query: {
+        title: 'foo'
+    }
+}, function( error, quizzes ) {
+    if ( error ) {
+        console.error( error );
+        return;
+    }
+
+    console.log( 'Found ' + quizzes.length + ' quizzes with a title of "foo".' );
+} );
+```
+
+.get supports MongoDB-style queries, eg:
+
+```javascript
+hone.get( {
+    type: 'Quiz',
+    query: { 
+        title: /foo.*/ig,
+        updatedAt: {
+            $gte: "2014-11-20T11:22:01.142Z"
+        }
+    }
+}, function( error, quizzes ) {
+    if ( error ) {
+        console.error( error );
+        return;
+    }
+
+    console.log( 'Found ' + quizzes.length + ' quizzes with a title of "foo.*" and updated since "2014-11-20T11:22:01.142Z".' );
+} );
+```
+
+Individual elements of a fetched results array can also use the save() method as described below, eg:
+
+```javascript
+hone.get( {
+    type: 'Quiz',
+    query: { 
+        title: /foo.*/ig,
+        updatedAt: {
+            $gte: "2014-11-20T11:22:01.142Z"
+        }
+    }
+}, function( error, quizzes ) {
+    if ( error ) {
+        console.error( error );
+        return;
+    }
+
+    quizzes.forEach( function( quiz ) {
+        quiz.tags.push( 'foo' );
+        quiz.save();
+    } );
 } );
 ```
 
@@ -48,7 +121,10 @@ When an object is fetched from the server, we add the method 'save' to it. You c
 Example:
 
 ```javascript
-hone.get( 'Quiz', '543d7522b9a138627fcc12c9', function( error, quiz ) {
+hone.get( {
+    type: 'Quiz',
+    id: '543d7522b9a138627fcc12c9'
+}, function( error, quiz ) {
     if ( error ) {
         console.error( error );
         return;
@@ -79,7 +155,7 @@ Emitted when an object is fetched from the server.
 
 ```javascript
 hone.on( 'datastore.get', function( event ) {
-    console.log( 'Fetched object of type "' + event.type + '" with id "' + event.id + '": ' + event.obj );
+    console.log( 'Fetched object of type "' + event.type + '" with id "' + event.id + '": ' + event.result );
 } );
 ```
 
@@ -89,7 +165,7 @@ Emitted when an object is persisted to the server.
 
 ```javascript
 hone.on( 'datastore.save', function( event ) {
-    console.log( 'Saved object of type "' + event.type + '" with id "' + event.id + '": ' + event.obj );
+    console.log( 'Saved object of type "' + event.type + '" with id "' + event.id + '": ' + event.result );
     console.log( 'Applied changes: ' + event.changes );
 } );
 ```

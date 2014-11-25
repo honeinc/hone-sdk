@@ -20,42 +20,81 @@ util.inherits( DataStore, Emitter );
 
 function noop() {}
 
-DataStore.prototype.get = function( type, id, callback, force ) {
+DataStore.prototype.get = function( opts, callback ) {
     var self = this;
 
-    var key = type + ':' + id;
-    if ( !force && self.cache[ key ] ) {
-        self.emit( 'get', {
-            type: type,
-            id: id,
-            obj: self.cache[ key ]
+    if ( ( opts.id && opts.query ) || !( opts.id || opts.query ) ) {
+        callback( {
+            error: 'invalid query',
+            message: 'You must specify either an id or a query.'
         } );
-
-        callback( null, self.cache[ key ] );
         return;
     }
     
-    ajaja( {
+    var key = null;
+    if ( opts.id ) {
+        key = opts.type + ':' + opts.id;
+        if ( !opts.force && self.cache[ key ] ) {
+            self.emit( 'get', {
+                type: opts.type,
+                id: opts.id,
+                result: self.cache[ key ]
+            } );
+
+            callback( null, self.cache[ key ] );
+            return;
+        }
+    }
+
+    var fetchOptions = {
         method: 'GET',
-        url: self.hone.url( '/api/2.0/store/' + type + '/' + id )
-    }, function( error, obj ) {
+        url: self.hone.url( '/api/2.0/store/' + opts.type ) + ( opts.id ? ( '/' + opts.id ) : '' )
+    };
+    
+    if ( opts.query ) {
+        var prevToJSON = RegExp.prototype.toJSON;
+        RegExp.prototype.toJSON = function() {
+            return '!!RE:' + this.toString();
+        };
+        
+        fetchOptions.data = {
+            query: JSON.stringify( opts.query )
+        };
+        
+        RegExp.prototype.toJSON = prevToJSON;
+    }
+
+    ajaja( fetchOptions, function( error, result ) {
         if ( error ) {
             callback( error );
             return;
         }
 
-        self.readCache[ key ] = extend( true, {}, obj );
-    
-        self._decorateObject( obj, type, key );
-        self.cache[ key ] = obj;
+        if ( opts.id ) {
+            self.readCache[ key ] = extend( true, {}, result );
+            self._decorateObject( result, opts.type, key );
+            self.cache[ key ] = result;
+        }
+        else {
+            if ( Array.isArray( result ) ) {
+                for( var i = 0; i < result.length; ++i ) {
+                    var obj = result[ i ];
+                    var objKey = opts.type + ':' + obj._id;
+                    self.readCache[ objKey ] = extend( true, {}, obj );
+                    self._decorateObject( obj, opts.type, objKey );
+                    self.cache[ objKey ] = obj;
+                }
+            }
+        }
 
         self.emit( 'get', {
-            type: type,
-            id: id,
-            obj: obj
+            type: opts.type,
+            id: opts.id,
+            query: opts.query,
+            result: result
         } );
-        
-        callback( null, obj );
+
+        callback( null, result );
     } );
 };
 
@@ -107,7 +146,7 @@ DataStore.prototype.save = function( obj, callback ) {
         self.emit( 'save', {
             type: type,
             id: id,
-            obj: obj,
+            result: obj,
             changes: changes
         } );
         
