@@ -1,6 +1,6 @@
 {
   "name": "hone",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "An SDK for interacting with Hone.",
   "homepage": "https://github.com/honeinc/hone-sdk",
   "repository": {
@@ -42,6 +42,7 @@
   "dependencies": {
     "ajaja": "0.1.1",
     "async": "^0.9.0",
+    "bson-objectid": "^1.0.1",
     "deep-diff": "^0.2.0",
     "delver": "0.0.10",
     "extend": "^2.0.0",

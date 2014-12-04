@@ -9,6 +9,7 @@ var util = require( 'util' );
 
 var Auth = require( './src/auth' );
 var DataStore = require( './src/datastore' );
+var Mongo = require( './src/mongo' );
 var Preferences = require( './src/preferences' );
 var State = require( './src/state' ).State;
 
@@ -43,6 +44,8 @@ function Hone( options ) {
     self._multiplexEmit( self.datastore, 'datastore' );
     self._multiplexBind( self.datastore, [ 'create', 'get' ] );
 
+    self.mongo = new Mongo( self );
+    
     if ( self.options.init ) {
         // we wait a tick to give them an opportunity to bind events
         setTimeout( self.init.bind( self ), 0 );
