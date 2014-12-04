@@ -20,6 +20,34 @@ util.inherits( DataStore, Emitter );
 
 function noop() {}
 
+DataStore.prototype.create = function( opts, callback ) {
+    var self = this;
+
+    ajaja( {
+        method: 'POST',
+        url: self.hone.url( '/api/2.0/store/' + opts.type ),
+        data: opts.data
+    }, function( error, result ) {
+        if ( error ) {
+            callback( error );
+            return;
+        }
+
+        var key = opts.type + ':' + result._id;
+        self.readCache[ key ] = extend( true, {}, result );
+        self._decorateObject( result, opts.type, key );
+        self.cache[ key ] = result;
+
+        self.emit( 'create', {
+            type: opts.type,
+            id: result._id,
+            result: result
+        } );
+
+        callback( null, result );
+    } );
+};
+
 DataStore.prototype.get = function( opts, callback ) {
     var self = this;
 

@@ -41,7 +41,7 @@ function Hone( options ) {
 
     self.datastore = new DataStore( self );
     self._multiplexEmit( self.datastore, 'datastore' );
-    self._multiplexBind( self.datastore, [ 'get' ] );
+    self._multiplexBind( self.datastore, [ 'create', 'get' ] );
 
     if ( self.options.init ) {
         // we wait a tick to give them an opportunity to bind events

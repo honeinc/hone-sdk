@@ -4,6 +4,7 @@
 
 | method                                        | signature                   | short description                                                   |
 | :-------------------------------------------- | :-------------------------- | :------------------------------------------------------------------ |
+| [create](#methods.create)                     | create( options, callback ) | Creates a new object based on specified options.                    |
 | [get](#methods.get)                           | get( options, callback )    | Gets object(s) based on specified options.                          |
 | [*object*.save](#methods.save)                | *object*.save( [callback] ) | Saves the given object to the server.                               |
 
@@ -11,10 +12,42 @@
 
 | event                                | short description                                      |
 | :----------------------------------- | :----------------------------------------------------- |
+| [create](#events.create)             | Emitted when an object is created.                     |
 | [get](#events.get)                   | Emitted when an object is fetched from the server.     |
 | [save](#events.save)                 | Emitted when an object is saved to the server.         |
 
 ## <a name="methods"></a> Methods
+
+### <a name="methods.create"></a> create( options, callback )
+
+```javascript
+hone.create( options, callback )
+```
+
+Creates an object based on the options specified.
+
+| option          | description                                                           |
+| :-------------- | :-------------------------------------------------------------------- |
+| type (string)   | Specifies the type of object to retrieve.                             |
+| data (object)   | Specifies any initial data to send along with the create request.     |
+
+Example:
+
+```javascript
+hone.create( {
+    type: 'Quiz',
+    data: {
+        title: 'foo'
+    }
+}, function( error, quiz ) {
+    if ( error ) {
+        console.error( error );
+        return;
+    }
+
+    console.log( quiz._id ); // prints the id of the newly-created quiz
+} );
+```
 
 ### <a name="methods.get"></a> get( options, callback )
 
@@ -148,6 +181,16 @@ hone.get( {
 ```
 
 ## <a name="events"></a> Events
+
+### <a name="events.create"></a> datastore.create
+
+Emitted when an object is created.
+
+```javascript
+hone.on( 'datastore.create', function( event ) {
+    console.log( 'Created object of type "' + event.type + '" with id "' + event.result._id + '": ' + event.result );
+} );
+```
 
 ### <a name="events.get"></a> datastore.get
 
