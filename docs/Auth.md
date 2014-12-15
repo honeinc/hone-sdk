@@ -18,6 +18,7 @@
 | [login](#events.login)               | Emitted when the user logs in.                         |
 | [logout](#events.logout)             | Emitted when the user logs out.                        |
 | [user_updated](#events.user_updated) | Emitted when a user's profile data has changed.        |
+| [identified](#events.identified)     | Emitted when a user has had a unique id determined.    |
 
 ## <a name="methods"></a> Methods
 
@@ -165,5 +166,15 @@ Emitted when a user's profile data is updated.
 hone.on( 'auth.user_updated', function( event ) {
     // event.old is the previous settings for this user
     console.log( 'User updated: ' + event.user );
+} );
+```
+
+### <a name="events.identified"></a> auth.identified
+
+Emitted when a user has a unique id determined.
+
+```javascript
+hone.on( 'auth.identified', function( event ) {
+    console.log( 'Unique id: ' + event.id );
 } );
 ```

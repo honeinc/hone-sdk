@@ -19,15 +19,32 @@ function Auth( hone ) {
     self.hone = hone;
     self.xdls = new XDLS( hone.options.xdls );
     self.xdls.init(); // pre-init the iframe, etc.
+    
+    // pre-seed the unique id
+    self._getUniqueId( function( error, uniqueId ) {
+        if ( error ) {
+            self.emit( 'error', error );
+            return;
+        }
+        
+        if ( !uniqueId ) {
+            self.emit( 'warning', 'Could not determine unique id at startup.' );
+        }
+        else {
+            self.emit( 'identified', {
+                id: uniqueId
+            } );
+        }
+    } );
 }
 util.inherits( Auth, Emitter );
 
 function noop() {}
 
-Auth.prototype._getUniqueId = function( output, callback ) {
+Auth.prototype._getUniqueId = function( callback ) {
     var self = this;
     
-    output = self.hone.state.get( 'uniqueId' );
+    var output = self.hone.state.get( 'uniqueId' );
     if ( output ) {
         callback();
         return;
@@ -48,7 +65,7 @@ Auth.prototype._getUniqueId = function( output, callback ) {
 
         self.hone.state.set( 'uniqueId', output );
         
-        callback();
+        callback( null, output );
     }, self.xdls );
 };
 
@@ -189,7 +206,17 @@ Auth.prototype.signup = function( options, callback ) {
     var user = null;
     
     async.series( [
-        self._getUniqueId.bind( self, anonymousId ),
+        function( next ) {
+            self._getUniqueId( function( error, uniqueId ) {
+                if ( error ) {
+                    next( error );
+                    return;
+                }
+                
+                anonymousId = uniqueId;
+                next();
+            } );
+        },
         
         // do the login
         function( next ) {
@@ -313,8 +340,18 @@ Auth.prototype.login = function( options, callback ) {
         },
         
         // get unique id
-        self._getUniqueId.bind( self, anonymousId ),
-        
+        function( next ) {
+            self._getUniqueId( function( error, uniqueId ) {
+                if ( error ) {
+                    next( error );
+                    return;
+                }
+
+                anonymousId = uniqueId;
+                next();
+            } );
+        },
+
         // try to login
         function( next ) {
             ajaja( {
