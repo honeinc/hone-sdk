@@ -70,28 +70,25 @@ Auth.prototype._getUniqueId = function( callback ) {
 };
 
 Auth.prototype._onUserLogin = function( user, callback ) {
-    var self = this;
     
-    if ( !user ) {
-        if ( callback ) {
-            callback();
-        }
-        return;
-    }
-    
+    var self = this;    
     var existingUser = self.hone.state.get( 'user' );
 
     // if there is no logged in user via the api, log out
-    if ( !user && existingUser ) {
+    if ( !user ) {
         self.hone.state.set( 'user', null );
         self.hone.state.set( 'authtoken', null );
 
         self.xdls.removeItem( 'user' );
         self.xdls.removeItem( 'authtoken' );
 
-        self.emit( 'logout', {
-            user: existingUser
-        } );
+        if ( existingUser ) {
+            
+            self.emit( 'logout', {
+                user: existingUser
+            } );            
+        }
+
     }        
     // if the user has updated their settings
     else if ( user && existingUser && existingUser._id === user._id && diff( existingUser, user ) ) {
