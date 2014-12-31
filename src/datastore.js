@@ -161,6 +161,7 @@ DataStore.prototype.save = function( obj, callback ) {
         data: changes
     }, function( error, _obj ) {
         if ( error ) {
+            self._decorateObject( obj, type, key );
             callback( error );
             return;
         }
