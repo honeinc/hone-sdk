@@ -198,6 +198,7 @@ Auth.prototype.getUser = function( callback, force ) {
 Auth.prototype.signup = function( options, callback ) {
     var self = this;
 
+    callback = callback || noop;
     var data = extend( {}, options );
     var anonymousId = null;
     var user = null;
@@ -238,10 +239,8 @@ Auth.prototype.signup = function( options, callback ) {
         
     ], function( error ) {
         if ( error ) {
+            callback( error );
             self.emit( 'error', error );
-            if ( callback ) { 
-                callback( error );
-            }
             return;
         }
 
@@ -249,9 +248,7 @@ Auth.prototype.signup = function( options, callback ) {
             user: user
         } );
         
-        if ( callback ) {
-            callback( null, user );
-        }
+        callback( null, user );
     } );
 };
 
@@ -270,8 +267,8 @@ Auth.prototype.logout = function( callback ) {
         method: 'DELETE'
     }, function( error ) {
         if ( error ) {
-            self.emit( 'error', error );
             callback( error );
+            self.emit( 'error', error );
             return;
         }
         

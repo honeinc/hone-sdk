@@ -104,6 +104,9 @@ Hone.prototype._multiplexBind = function( target, methods, namespace ) {
 Hone.prototype._multiplexEmit = function( emitter, namespace ) {
     var self = this;
     
+    // we bind a basic error handler to avoid unhandled exceptions
+    emitter.on( 'error', console.error.bind( console ) );
+    
     // we re-emit events as a convenience
     var originalEmit = emitter.emit;
     emitter.emit = function() {
