@@ -211,4 +211,10 @@ hone.on( 'datastore.save', function( event ) {
     console.log( 'Saved object of type "' + event.type + '" with id "' + event.id + '": ' + event.result );
     console.log( 'Applied changes: ' + event.changes );
 } );
+// or
+hone.on( 'datastore.change', function( event ) { /*..*/ } );
+hone.on( 'datastore.change.{type}', function( event ) { /*..*/ } ); // all type changes
+hone.on( 'datastore.change.{type}.{id}', function( event ) { /*..*/ } ); // single resource changes
 ```
+
+
