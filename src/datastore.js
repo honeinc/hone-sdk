@@ -172,12 +172,17 @@ DataStore.prototype.save = function( obj, callback ) {
         self._decorateObject( obj, type, key );
         self.cache[ key ] = obj;
 
-        self.emit( 'save', {
+        var changeObj = {
             type: type,
             id: id,
             result: obj,
             changes: changes
-        } );
+        };
+
+        self.emit( 'save', changeObj );
+        self.emit( 'change', changeObj );
+        self.emit( 'change.' + type, changeObj );
+        self.emit( 'change.' + type + '.' + id, changeObj );
         
         callback( null, obj );
     } );
