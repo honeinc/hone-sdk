@@ -20,6 +20,19 @@ util.inherits( DataStore, Emitter );
 
 function noop() {}
 
+DataStore.prototype._cacheObject = function( key, obj, readonlyObj ) {
+    var self = this;
+    self.readCache[ key ] = extend( true, {}, ( typeof( readonlyObj ) !== 'undefined' ? readonlyObj : obj ) );
+    self.cache[ key ] = obj;
+};
+
+DataStore.prototype._decorateObject = function( obj, type, key ) {
+    var self = this;
+    obj.__type = type;
+    obj.__key = key;
+    obj.save = self._save.bind( self, obj );
+};
+
 DataStore.prototype.create = function( opts, callback ) {
     var self = this;
 
@@ -34,9 +47,8 @@ DataStore.prototype.create = function( opts, callback ) {
         }
 
         var key = opts.type + ':' + result._id;
-        self.readCache[ key ] = extend( true, {}, result );
+        self._cacheObject( key, result );
         self._decorateObject( result, opts.type, key );
-        self.cache[ key ] = result;
 
         self.emit( 'create', {
             type: opts.type,
@@ -99,18 +111,16 @@ DataStore.prototype.get = function( opts, callback ) {
         }
 
         if ( opts.id ) {
-            self.readCache[ key ] = extend( true, {}, result );
+            self._cacheObject( key, result );
             self._decorateObject( result, opts.type, key );
-            self.cache[ key ] = result;
         }
         else {
             if ( Array.isArray( result ) ) {
                 for( var i = 0; i < result.length; ++i ) {
                     var obj = result[ i ];
                     var objKey = opts.type + ':' + obj._id;
-                    self.readCache[ objKey ] = extend( true, {}, obj );
+                    self._cacheObject( objKey, obj );
                     self._decorateObject( obj, opts.type, objKey );
-                    self.cache[ objKey ] = obj;
                 }
             }
         }
@@ -127,18 +137,16 @@ DataStore.prototype.get = function( opts, callback ) {
 };
 
 DataStore.prototype.load = function( type, obj ) {
-    this._decorateObject( obj, type, type + ':' + obj._id );
+    var self = this;
+
+    var key = type + ':' + obj._id;
+
+    self._cacheObject( key, obj );
+    self._decorateObject( obj, type, key );
     return obj;
 };
 
-DataStore.prototype._decorateObject = function( obj, type, key ) {
-    var self = this;
-    obj.__type = type;
-    obj.__key = key;
-    obj.save = self.save.bind( self, obj );
-};
-
-DataStore.prototype.save = function( obj, callback ) {
+DataStore.prototype._save = function( obj, callback ) {
     var self = this;
     
     callback = callback || noop;
@@ -171,11 +179,9 @@ DataStore.prototype.save = function( obj, callback ) {
             return;
         }
 
-        self.readCache[ key ] = extend( true, {}, _obj );
-
-        extend( obj, _obj );
+        self._cacheObject( key, obj, _obj );
         self._decorateObject( obj, type, key );
-        self.cache[ key ] = obj;
+        extend( obj, _obj );
 
         var changeObj = {
             type: type,

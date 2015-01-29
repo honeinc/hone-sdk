@@ -6,6 +6,7 @@
 | :-------------------------------------------- | :-------------------------- | :------------------------------------------------------------------ |
 | [create](#methods.create)                     | create( options, callback ) | Creates a new object based on specified options.                    |
 | [get](#methods.get)                           | get( options, callback )    | Gets object(s) based on specified options.                          |
+| [load](#methods.load)                         | load( type, object )        | Given an object, loads it into the SDK, caching/decorating it.      |
 | [*object*.save](#methods.save)                | *object*.save( [callback] ) | Saves the given object to the server.                               |
 
 ## <a name="events-overview"></a> Events Overview
@@ -142,6 +143,31 @@ hone.get( {
     } );
 } );
 ```
+
+### <a name="methods.load"></a> load( type, object )
+
+```javascript
+var foo = {
+    _id: '[...]',
+    bar: 'baz'
+};
+hone.load( 'ExampleType', foo );
+```
+
+Calling load() with a type on an object will:
+
+1) Load the object into the SDK's internal cache.
+2) Decorate the object with the SDK's [save method](#methods.save).
+
+> Note: This is an advanced method, and should only be used in certain specific cases.
+> For example, if you were to send a JSON-encoded object down with the HTML response
+> to an initial page load request, this method can be used to load the resulting object
+> into the SDK's cache and give the object the necessary save() method.
+
+| option          | description                                                           |
+| :-------------- | :-------------------------------------------------------------------- |
+| type (string)   | Specifies the type of object that is being loaded into the cache.     |
+| object (object) | The object to be loaded into the cache/decorated.                     |
 
 ### <a name="methods.save"></a> *object*.save( [callback] )
 
