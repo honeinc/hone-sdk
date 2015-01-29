@@ -9,7 +9,7 @@
   },
   "main": "./index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tape test/*"
   },
   "keywords": [
     "hone"
@@ -48,6 +48,7 @@
     "extend": "^2.0.0",
     "js-base64": "^2.1.5",
     "localforage": "^1.0.4",
+    "tape": "^3.4.0",
     "ubid": "0.0.1",
     "xdls": "^0.1.1"
   }

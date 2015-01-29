@@ -126,6 +126,11 @@ DataStore.prototype.get = function( opts, callback ) {
     } );
 };
 
+DataStore.prototype.load = function( type, obj ) {
+    this._decorateObject( obj, type, type + ':' + obj._id );
+    return obj;
+};
+
 DataStore.prototype._decorateObject = function( obj, type, key ) {
     var self = this;
     obj.__type = type;
