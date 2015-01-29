@@ -42,7 +42,7 @@ function Hone( options ) {
 
     self.datastore = new DataStore( self );
     self._multiplexEmit( self.datastore, 'datastore' );
-    self._multiplexBind( self.datastore, [ 'create', 'get' ] );
+    self._multiplexBind( self.datastore, [ 'create', 'get', 'load' ] );
 
     self.mongo = new Mongo( self );
     

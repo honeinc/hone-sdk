@@ -1,6 +1,6 @@
 {
   "name": "hone",
-  "version": "1.13.0",
+  "version": "1.13.1",
   "description": "An SDK for interacting with Hone.",
   "homepage": "https://github.com/honeinc/hone-sdk",
   "repository": {
@@ -9,7 +9,9 @@
   },
   "main": "./index.js",
   "scripts": {
-    "test": "browserify test/* | tape-run -b firefox"
+    "test": "browserify test/* | tape-run -b firefox",
+    "bundle": "gulp",
+    "publish": "gulp publish"
   },
   "keywords": [
     "hone"
