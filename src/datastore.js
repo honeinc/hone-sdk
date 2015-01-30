@@ -6,6 +6,8 @@ var extend = require( 'extend' );
 var diff = require( 'deep-diff' ).diff;
 var util = require( 'util' );
 
+var objectFactory = require( './objectfactory' );
+
 module.exports = DataStore;
 
 function DataStore( hone ) {
@@ -36,27 +38,19 @@ DataStore.prototype._decorateObject = function( obj, type, key ) {
 DataStore.prototype.create = function( opts, callback ) {
     var self = this;
 
-    ajaja( {
-        method: 'POST',
-        url: self.hone.url( '/api/2.0/store/' + opts.type ),
-        data: opts.data
-    }, function( error, result ) {
-        if ( error ) {
-            callback( error );
-            return;
-        }
+    var obj = objectFactory.create( opts.type.toLowerCase() );
+    extend( obj, opts.data );
+    
+    var key = opts.type + ':' + obj._id;
+    self._cacheObject( key, obj );
+    self._decorateObject( obj, opts.type, key );
 
-        var key = opts.type + ':' + result._id;
-        self._cacheObject( key, result );
-        self._decorateObject( result, opts.type, key );
-
-        self.emit( 'create', {
-            type: opts.type,
-            id: result._id,
-            result: result
-        } );
-
-        callback( null, result );
+    callback( null, obj );
+    
+    self.emit( 'create', {
+        type: opts.type,
+        id: obj._id,
+        obj: obj
     } );
 };
 
