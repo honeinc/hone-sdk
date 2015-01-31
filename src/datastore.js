@@ -53,8 +53,23 @@ DataStore.prototype.create = function( opts, callback ) {
                 next();
                 return;
             }
-            
-            self._save( obj, next );    
+
+            ajaja( {
+                method: 'POST',
+                url: self.hone.url( '/api/2.0/store/' + opts.type ),
+                data: opts.data
+            }, function( error, _obj ) {
+                if ( error ) {
+                    next( error );
+                    return;
+                }
+
+                var key = opts.type + ':' + _obj._id;
+                self._cacheObject( key, _obj );
+                self._decorateObject( _obj, opts.type, key );
+                obj = _obj;
+                next();
+            } );            
         }
     ], function( error ) {
         if ( error ) {
