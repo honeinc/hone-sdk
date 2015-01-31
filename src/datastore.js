@@ -1,6 +1,7 @@
 'use strict';
 
 var ajaja = require( 'ajaja' );
+var async = require( 'async' );
 var Emitter = require( 'events' ).EventEmitter;
 var extend = require( 'extend' );
 var diff = require( 'deep-diff' ).diff;
@@ -33,6 +34,7 @@ DataStore.prototype._decorateObject = function( obj, type, key ) {
     obj.__type = type;
     obj.__key = key;
     obj.save = self._save.bind( self, obj );
+    obj.delete = self._delete.bind( self, obj );
 };
 
 DataStore.prototype.create = function( opts, callback ) {
@@ -42,15 +44,31 @@ DataStore.prototype.create = function( opts, callback ) {
     extend( obj, opts.data );
     
     var key = opts.type + ':' + obj._id;
-    self._cacheObject( key, obj );
+    self._cacheObject( key, obj, {} ); // pass an empty read-only object, since we started from nothing here
     self._decorateObject( obj, opts.type, key );
 
-    callback( null, obj );
-    
-    self.emit( 'create', {
-        type: opts.type,
-        id: obj._id,
-        obj: obj
+    async.series( [
+        function( next ) {
+            if ( !opts.save ) {
+                next();
+                return;
+            }
+            
+            self._save( obj, next );    
+        }
+    ], function( error ) {
+        if ( error ) {
+            callback( error, obj );
+            return;
+        }
+
+        callback( null, obj );
+
+        self.emit( 'create', {
+            type: opts.type,
+            id: obj._id,
+            obj: obj
+        } );
     } );
 };
 
@@ -152,6 +170,7 @@ DataStore.prototype._save = function( obj, callback ) {
     delete obj.__type;
     delete obj.__key;
     delete obj.save;
+    delete obj.delete;
 
     var base = self.readCache[ key ];
     var changes = diff( base, obj );
@@ -190,5 +209,38 @@ DataStore.prototype._save = function( obj, callback ) {
         self.emit( 'change.' + type + '.' + id, changeObj );
         
         callback( null, obj );
+    } );
+};
+
+DataStore.prototype._delete = function( obj, callback ) {
+    var self = this;
+
+    callback = callback || noop;
+
+    var type = obj.__type;
+    var id = obj._id;
+    var key = obj.__key;
+
+    ajaja( {
+        method: 'DELETE',
+        url: self.hone.url( '/api/2.0/store/' + type + '/' + id )
+    }, function( error ) {
+        if ( error ) {
+            self._decorateObject( obj, type, key );
+            callback( error );
+            return;
+        }
+
+        delete self.readCache[ key ];
+        delete self.cache[ key ];
+        
+        var event = {
+            type: type,
+            id: id            
+        };
+
+        self.emit( 'delete', event );
+
+        callback();
     } );
 };
