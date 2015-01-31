@@ -9,7 +9,9 @@
   },
   "main": "./index.js",
   "scripts": {
-    "test": "tape test/*"
+    "test": "browserify test/* | tape-run -b firefox",
+    "bundle": "gulp",
+    "publish": "gulp publish"
   },
   "keywords": [
     "hone"
@@ -36,6 +38,7 @@
     "gulp-uglify": "^1.0.1",
     "minimist": "^1.1.0",
     "rsyncwrapper": "^0.4.1",
+    "tape-run": "^0.3.0",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.0.0"
   },
@@ -48,7 +51,6 @@
     "extend": "^2.0.0",
     "js-base64": "^2.1.5",
     "localforage": "^1.0.4",
-    "tape": "^3.4.0",
     "ubid": "0.0.1",
     "xdls": "^0.1.1"
   }
