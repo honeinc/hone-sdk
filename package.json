@@ -1,6 +1,6 @@
 {
   "name": "hone",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "description": "An SDK for interacting with Hone.",
   "homepage": "https://github.com/honeinc/hone-sdk",
   "repository": {
@@ -52,6 +52,6 @@
     "js-base64": "^2.1.5",
     "localforage": "^1.0.4",
     "ubid": "0.0.1",
-    "xdls": "^0.1.2"
+    "xdls": "^0.1.3"
   }
 }
