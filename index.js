@@ -6,11 +6,14 @@ var Delver = require( 'delver' );
 var Emitter = require( 'events' ).EventEmitter;
 var extend = require( 'extend' );
 var util = require( 'util' );
+var XDLS = require( 'xdls' );
 
 var Auth = require( './src/auth' );
 var DataStore = require( './src/datastore' );
+var Id = require( './src/id' );
 var Mongo = require( './src/mongo' );
 var Preferences = require( './src/preferences' );
+var Registration = require( './src/registration' );
 var State = require( './src/state' ).State;
 
 module.exports = Hone;
@@ -32,7 +35,17 @@ function Hone( options ) {
     
     self.api = null;
     self.state = new State( {} );
+    
+    self.xdls = new XDLS( self.options.xdls );
+    self.xdls.init(); // pre-init the iframe, etc.    
+    
+    self.id = new Id( self );
+    self._multiplexEmit( self.id, 'id' );
 
+    self.registration = new Registration( self );
+    self._multiplexEmit( self.registration, 'registration' );
+    self._multiplexBind( self.registration, [ 'register', 'getPerson' ] );
+    
     self.auth = new Auth( self );
     self._multiplexEmit( self.auth, 'auth' );
     self._multiplexBind( self.auth, [ 'getUser', 'login', 'logout', 'signup', 'requestLoginCode', 'updateUser' ] );
@@ -105,7 +118,7 @@ Hone.prototype._multiplexEmit = function( emitter, namespace ) {
     var self = this;
     
     // we bind a basic error handler to avoid unhandled exceptions
-    emitter.on( 'error', console.error.bind( console ) );
+    emitter.on( 'error', window.console.error.bind( window.console ) );
     
     // we re-emit events as a convenience
     var originalEmit = emitter.emit;

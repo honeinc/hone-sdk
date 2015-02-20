@@ -35,6 +35,7 @@ DataStore.prototype._decorateObject = function( obj, type, key ) {
     obj.__key = key;
     obj.save = self._save.bind( self, obj );
     obj.delete = self._delete.bind( self, obj );
+    obj.bare = self._bare.bind( self, obj );
 };
 
 DataStore.prototype.create = function( opts, callback ) {
@@ -178,50 +179,40 @@ DataStore.prototype._save = function( obj, callback ) {
     
     callback = callback || noop;
     
-    var type = obj.__type;
-    var id = obj._id;
-    var key = obj.__key;
-
-    delete obj.__type;
-    delete obj.__key;
-    delete obj.save;
-    delete obj.delete;
-
+    var key = obj.__type + ':' + obj._id;
     var base = self.readCache[ key ];
-    var changes = diff( base, obj );
+    var bare = obj.bare();
+    var changes = diff( base, bare );
     
     if ( !changes ) {
-        self._decorateObject( obj, type, key );
         callback( null, obj );
         return;
     }
     
     ajaja( {
         method: 'PUT',
-        url: self.hone.url( '/api/2.0/store/' + type + '/' + id ),
+        url: self.hone.url( '/api/2.0/store/' + obj.__type + '/' + obj._id ),
         data: changes
     }, function( error, _obj ) {
         if ( error ) {
-            self._decorateObject( obj, type, key );
             callback( error );
             return;
         }
 
         self._cacheObject( key, obj, _obj );
-        self._decorateObject( obj, type, key );
         extend( obj, _obj );
 
         var changeObj = {
-            type: type,
-            id: id,
+            type: obj.__type,
+            id: obj._id,
             result: obj,
             changes: changes
         };
 
         self.emit( 'save', changeObj );
         self.emit( 'change', changeObj );
-        self.emit( 'change.' + type, changeObj );
-        self.emit( 'change.' + type + '.' + id, changeObj );
+        self.emit( 'change.' + obj.__type, changeObj );
+        self.emit( 'change.' + obj.__type + '.' + obj._id, changeObj );
         
         callback( null, obj );
     } );
@@ -258,4 +249,15 @@ DataStore.prototype._delete = function( obj, callback ) {
 
         callback();
     } );
+};
+
+DataStore.prototype._bare = function( obj ) {
+    var bare = extend( true, {}, obj );
+    delete bare.__type;
+    delete bare.__key;
+    delete bare.save;
+    delete bare.delete;
+    delete bare.bare;
+
+    return bare;    
 };

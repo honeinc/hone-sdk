@@ -75,6 +75,38 @@ var creators = {
         } );
     },
     
+    'person': function() {
+        return _addTimestamps( {
+            _id: new ObjectID(),
+            id: null,
+            user: null,
+            email: null,
+            facebook: {
+                id: null
+            },
+            firstname: null,
+            lastname: null,
+            gender: null,
+            birthYear: null,
+            birthMonth: null,
+            birthDay: null,
+            phone: null,
+            geo: {
+                country: null,
+                region: null,
+                city: null,
+                addressLine1: null,
+                addressLine2: null,
+                location: {
+                    type: null,
+                    coordinates: undefined
+                },
+                zip: null
+            },
+            lastSeen: new Date()
+        } );
+    },
+    
     'preferences': function() {
         return _addTimestamps( {
             _id: new ObjectID(),

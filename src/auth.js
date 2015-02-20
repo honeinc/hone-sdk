@@ -5,10 +5,8 @@ var async = require( 'async' );
 var Emitter = require( 'events' ).EventEmitter;
 var extend = require( 'extend' );
 var diff = require( 'deep-diff' ).diff;
-var XDLS = require( 'xdls' );
 var util = require( 'util' );
 var base64 = require( 'js-base64' ).Base64;
-var ubid = require( 'ubid' );
 
 module.exports = Auth;
 
@@ -17,57 +15,10 @@ function Auth( hone ) {
     Emitter.call( self );
     
     self.hone = hone;
-    self.xdls = new XDLS( hone.options.xdls );
-    self.xdls.init(); // pre-init the iframe, etc.
-    
-    // pre-seed the unique id
-    self._getUniqueId( function( error, uniqueId ) {
-        if ( error ) {
-            self.emit( 'error', error );
-            return;
-        }
-        
-        if ( !uniqueId ) {
-            self.emit( 'warning', 'Could not determine unique id at startup.' );
-        }
-        else {
-            self.emit( 'identified', {
-                id: uniqueId
-            } );
-        }
-    } );
 }
 util.inherits( Auth, Emitter );
 
 function noop() {}
-
-Auth.prototype._getUniqueId = function( callback ) {
-    var self = this;
-    
-    var output = self.hone.state.get( 'uniqueId' );
-    if ( output ) {
-        callback();
-        return;
-    }
-    
-    ubid.get( function( error, data ) {
-        if ( error ) {
-            callback( error );
-            return;
-        }
-
-        if ( data.storageSupported ) {
-            output = data.random ? data.random.signature : ( data.canvas ? data.canvas.signature : ( data.browser ? data.browser.signature : null ) );
-        }
-        else {
-            output = data.canvas ? data.canvas.signature : ( data.browser ? data.browser.signature : null );
-        }
-
-        self.hone.state.set( 'uniqueId', output );
-        
-        callback( null, output );
-    }, self.xdls );
-};
 
 Auth.prototype._onUserLogin = function( user, callback ) {
     
@@ -79,8 +30,8 @@ Auth.prototype._onUserLogin = function( user, callback ) {
         self.hone.state.set( 'user', null );
         self.hone.state.set( 'authtoken', null );
 
-        self.xdls.removeItem( 'user' );
-        self.xdls.removeItem( 'authtoken' );
+        self.hone.xdls.removeItem( 'user' );
+        self.hone.xdls.removeItem( 'authtoken' );
 
         if ( existingUser ) {
             
@@ -93,7 +44,7 @@ Auth.prototype._onUserLogin = function( user, callback ) {
     // if the user has updated their settings
     else if ( user && existingUser && existingUser._id === user._id && diff( existingUser, user ) ) {
         self.hone.state.set( 'user', user );
-        self.xdls.setItem( 'user', user );
+        self.hone.xdls.setItem( 'user', user );
         self.emit( 'user_updated', {
             old: existingUser,
             user: user
@@ -105,7 +56,7 @@ Auth.prototype._onUserLogin = function( user, callback ) {
             user: existingUser
         } );
         self.hone.state.set( 'user', user );
-        self.xdls.setItem( 'user', user );
+        self.hone.xdls.setItem( 'user', user );
         self.emit( 'login', {
             user: user
         } );
@@ -113,7 +64,7 @@ Auth.prototype._onUserLogin = function( user, callback ) {
     // if there was no existing user and we now have a user
     else if ( user && !existingUser ) {
         self.hone.state.set( 'user', user );
-        self.xdls.setItem( 'user', user );
+        self.hone.xdls.setItem( 'user', user );
         self.emit( 'login', { 
             user: user
         } );
@@ -138,7 +89,7 @@ Auth.prototype.getUser = function( callback, force ) {
     }
 
     if ( !force ) {
-        self.xdls.getItem( 'user', function( error, user ) {
+        self.hone.xdls.getItem( 'user', function( error, user ) {
             if ( error ) {
                 return; // we don't care if this errors, it's not authoritative
             }
@@ -158,7 +109,7 @@ Auth.prototype.getUser = function( callback, force ) {
             } );
         } );
 
-        self.xdls.getItem( 'authtoken', function( error, authtoken ) {
+        self.hone.xdls.getItem( 'authtoken', function( error, authtoken ) {
             if ( error ) {
                 return;
             }
@@ -200,18 +151,19 @@ Auth.prototype.signup = function( options, callback ) {
 
     callback = callback || noop;
     var data = extend( {}, options );
-    var anonymousId = null;
+    var person = null;
     var user = null;
     
     async.series( [
         function( next ) {
-            self._getUniqueId( function( error, uniqueId ) {
+
+            self.hone.getPerson( function( error, _person ) {
                 if ( error ) {
                     next( error );
                     return;
                 }
                 
-                anonymousId = uniqueId;
+                person = _person;
                 next();
             } );
         },
@@ -222,7 +174,8 @@ Auth.prototype.signup = function( options, callback ) {
                 url: self.hone.url( self.hone.api.users.create ),
                 method: 'POST',
                 headers: {
-                    'hone-anonymous-id': anonymousId
+                    'hone-anonymous-id': person ? person.id : null, // legacy
+                    'person-id': person ? person.id : null
                 },
                 data: data
             }, function( error, _user ) {
@@ -276,8 +229,8 @@ Auth.prototype.logout = function( callback ) {
         self.hone.state.set( 'authtoken', null );
         
         async.parallel( [
-            self.xdls.removeItem.bind( self.xdls, 'user' ),
-            self.xdls.removeItem.bind( self.xdls, 'authtoken' )
+            self.hone.xdls.removeItem.bind( self.hone.xdls, 'user' ),
+            self.hone.xdls.removeItem.bind( self.hone.xdls, 'authtoken' )
         ], function( error ) {
             if ( error ) {
                 self.emit( 'error', error );
@@ -309,8 +262,8 @@ Auth.prototype.requestLoginCode = function( options, callback ) {
 Auth.prototype.login = function( options, callback ) {
     var self = this;
     var authorization = null;
-    var anonymousId = null;
-
+    var person = null;
+    
     callback = callback || noop;
     
     async.series( [
@@ -333,15 +286,15 @@ Auth.prototype.login = function( options, callback ) {
             next();
         },
         
-        // get unique id
+        // get person
         function( next ) {
-            self._getUniqueId( function( error, uniqueId ) {
+            self.hone.getPerson( function( error, _person ) {
                 if ( error ) {
                     next( error );
                     return;
                 }
-
-                anonymousId = uniqueId;
+                
+                person = _person;
                 next();
             } );
         },
@@ -353,7 +306,8 @@ Auth.prototype.login = function( options, callback ) {
                 method: 'POST',
                 headers: {
                     'Authorization': authorization,
-                    'hone-anonymous-id': anonymousId
+                    'hone-anonymous-id': person ? person._id : null,
+                    'person-id': person ? person._id : null
                 },
                 data: {}
             }, function( error, response ) {
@@ -375,8 +329,8 @@ Auth.prototype.login = function( options, callback ) {
                 self.hone.state.set( 'user', user );
                 self.hone.state.set( 'authtoken', response.authtoken );
                 
-                self.xdls.setItem( 'user', user );
-                self.xdls.setItem( 'authtoken', response.authtoken );
+                self.hone.xdls.setItem( 'user', user );
+                self.hone.xdls.setItem( 'authtoken', response.authtoken );
 
                 self.emit( 'login', {
                     user: user
