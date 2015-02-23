@@ -93,20 +93,19 @@ Hone.prototype.url = function( path ) {
 
 Hone.prototype._multiplexBind = function( target, methods, namespace ) {
     var self = this;
-    
-    methods.forEach( function( method ) {
-        var selfTarget = self;
+    var selfTarget = self;
 
-        if ( namespace ) {
-            selfTarget = Delver.get( self, namespace );
-            if ( !selfTarget ) {
-                selfTarget = {};
-                Delver.set( self, namespace, selfTarget );
-            }
+    if ( namespace ) {
+        selfTarget = Delver.get( self, namespace );
+        if ( !selfTarget ) {
+            selfTarget = {};
+            Delver.set( self, namespace, selfTarget );
         }
-        
+    }
+
+    methods.forEach( function( method ) {
         var targetFunction = target[ method ];
-        if ( !targetFunction ) {
+        if ( typeof targetFunction !== 'function' ) {
             throw new Error( 'Invalid method on target (' + ( target.constructor ? target.constructor.name : 'unknown' ) + '): ' + method );
         }
         
