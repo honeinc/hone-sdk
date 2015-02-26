@@ -4,6 +4,7 @@ var ajaja = require( 'ajaja' );
 var async = require( 'async' );
 var Delver = require( 'delver' );
 var Emitter = require( 'events' ).EventEmitter;
+var EventBus = require( 'browser-event-bus' );
 var extend = require( 'extend' );
 var util = require( 'util' );
 var XDLS = require( 'xdls' );
@@ -57,6 +58,10 @@ function Hone( options ) {
     self._multiplexEmit( self.datastore, 'datastore' );
     self._multiplexBind( self.datastore, [ 'create', 'get', 'load' ] );
 
+    self.eventBus = new EventBus( {
+        namespace: 'Hone'
+    } );
+    
     self.mongo = new Mongo( self );
     
     if ( self.options.init ) {
