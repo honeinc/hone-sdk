@@ -45,7 +45,7 @@ function Hone( options ) {
 
     self.registration = new Registration( self );
     self._multiplexEmit( self.registration, 'registration' );
-    self._multiplexBind( self.registration, [ 'register', 'getPerson' ] );
+    self._multiplexBind( self.registration, [ 'register', 'unregister', 'getPerson' ] );
     
     self.auth = new Auth( self );
     self._multiplexEmit( self.auth, 'auth' );
