@@ -5,8 +5,6 @@ var gulp = require( 'gulp' );
 var minimist = require( 'minimist' );
 var rsync = require( 'rsyncwrapper' ).rsync;
 
-var bundle = require( './gulp/bundle' );
-
 var defaults = {
     sshkey: null,
     user: 'root',
@@ -16,19 +14,6 @@ var defaults = {
 
 var options = minimist( process.argv.slice( 2 ), {
     default: defaults
-} );
-
-gulp.task( 'bundle', function() {
-    var packageInfo = require( './package.json' );
-    bundle( {
-        file: packageInfo.main,
-        name: packageInfo.name,
-        output: './build/' + packageInfo.name + '-' + packageInfo.version + '.js',
-        sourceMaps: true,
-        minify: true,
-        debug: true,
-        standalone: 'Hone'
-    } );
 } );
 
 gulp.task( 'publish', function( next ) {
@@ -52,5 +37,3 @@ gulp.task( 'publish', function( next ) {
         next( error );
     } );
 } );
-
-gulp.task( 'default', [ 'bundle' ] );

@@ -1,6 +1,6 @@
 {
   "name": "hone",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "An SDK for interacting with Hone.",
   "homepage": "https://github.com/honeinc/hone-sdk",
   "repository": {
@@ -10,7 +10,10 @@
   "main": "./index.js",
   "scripts": {
     "test": "browserify test/* | tape-run -b firefox",
-    "bundle": "gulp",
+    "build": "npm run bundle && npm run compress && npm run copysource",
+    "bundle": "mkdir -p build/$npm_package_version/ && browserify index.js --standalone Hone --debug | exorcist build/$npm_package_version/hone.js.map > build/$npm_package_version/hone.js",
+    "compress": "mkdir -p build/$npm_package_version/ && uglifyjs --screw-ie8 --stats --compress --beautify ascii_only=true,beautify=false build/$npm_package_version/hone.js --in-source-map build/$npm_package_version/hone.js.map --source-map build/$npm_package_version/hone.min.js.map --source-map-url hone.min.js.map --output build/$npm_package_version/hone.min.js",
+    "copysource": "mkdir -p build/$npm_package_version/ && cp index.js build/$npm_package_version && cp -r src build/$npm_package_version",
     "publish": "gulp publish"
   },
   "keywords": [
@@ -32,14 +35,13 @@
   "license": "MIT",
   "devDependencies": {
     "browserify": "^6.1.0",
+    "exorcist": "^0.1.6",
     "gulp": "^3.8.8",
-    "gulp-size": "^1.1.0",
-    "gulp-sourcemaps": "^1.2.4",
-    "gulp-uglify": "^1.0.1",
     "minimist": "^1.1.0",
     "rsyncwrapper": "^0.4.1",
     "tape": "^3.5.0",
     "tape-run": "^0.3.0",
+    "uglify-js": "^2.4.16",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.0.0"
   },
@@ -54,6 +56,6 @@
     "js-base64": "^2.1.5",
     "localforage": "^1.0.4",
     "ubid": "0.0.1",
-    "xdls": "^0.1.5"
+    "xdls": "^0.1.6"
   }
 }
