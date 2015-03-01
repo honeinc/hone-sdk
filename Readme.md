@@ -17,9 +17,34 @@ You can read documentation [here](docs/).
 
 ## Example
 
+By default, hone creates an instance in the global window:
+
 ```javascript
-// create a new instance, Hone is exported into the global space by default
-var hone = new Hone();
+window.hone.on( 'auth.login', function() {
+    console.log( 'logged in!' );
+} );
+```
+If you would like to disable that, just make sure to set window.hone to something
+before loading the SDK, eg:
+
+```html
+<script type="text/javascript">
+    window.hone = undefined;
+</script>
+
+<script type="text/javascript" src="//honefiles.global.ssl.fastly.net/sdk/x.x.x/hone.min.js"></script>
+```
+
+You can create a new instance if you want to control variables:
+
+```javascript
+var hone = new Hone( {
+    init: false // wait for us to init, maybe we want to do some work first
+} );
+
+// do some work
+
+hone.init();
 
 // bind some events
 hone.on( 'auth.login', function( e ) {
