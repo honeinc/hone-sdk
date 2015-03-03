@@ -142,21 +142,17 @@ DataStore.prototype.get = function( opts, callback ) {
             return;
         }
 
-        // do not cache objects when a view is specified
-        // TODO: add a hash of the view to the key and cache? need to manage cache size tho
-        if ( !opts.view ) {
-            if ( opts.id ) {
-                self._cacheObject( key, result );
-                self._decorateObject( result, opts.type, key );
-            }
-            else {
-                if ( Array.isArray( result ) ) {
-                    for( var i = 0; i < result.length; ++i ) {
-                        var obj = result[ i ];
-                        var objKey = opts.type + ':' + obj._id;
-                        self._cacheObject( objKey, obj );
-                        self._decorateObject( obj, opts.type, objKey );
-                    }
+        if ( opts.id ) {
+            self._cacheObject( key, result );
+            self._decorateObject( result, opts.type, key );
+        }
+        else {
+            if ( Array.isArray( result ) ) {
+                for( var i = 0; i < result.length; ++i ) {
+                    var obj = result[ i ];
+                    var objKey = opts.type + ':' + obj._id;
+                    self._cacheObject( objKey, obj );
+                    self._decorateObject( obj, opts.type, objKey );
                 }
             }
         }
@@ -165,7 +161,6 @@ DataStore.prototype.get = function( opts, callback ) {
             type: opts.type,
             id: opts.id,
             query: opts.query,
-            view: opts.view,
             result: result
         } );
 
