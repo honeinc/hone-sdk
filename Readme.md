@@ -8,7 +8,7 @@ A Javascript library for interfacing with Hone.
 Include the SDK from our CDN:
 
 ```html
-<script src="//honefiles.global.ssl.fastly.net/sdk/hone-1.5.0.min.js"></script>
+<script src="//honefiles.global.ssl.fastly.net/sdk/2.6.1/hone.min.js"></script>
 ```
 
 ## Documentation
