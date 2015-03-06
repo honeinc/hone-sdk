@@ -1,9 +1,7 @@
 'use strict';
 
 var ajaja = require( 'ajaja' );
-var antisync = {
-    series: require( 'antisync/series' )
-};
+var async = require( 'async' );
 var EventEmitter = require( 'eventemitter2' ).EventEmitter2;
 var extend = require( 'extend' );
 var diff = require( 'deep-diff' ).diff;
@@ -50,7 +48,7 @@ DataStore.prototype.create = function( opts, callback ) {
     self._cacheObject( key, obj, {} ); // pass an empty read-only object, since we started from nothing here
     self._decorateObject( obj, opts.type, key );
 
-    antisync.series( [
+    async.series( [
         function( next ) {
             if ( !opts.save ) {
                 next();

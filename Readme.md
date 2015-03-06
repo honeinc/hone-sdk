@@ -8,14 +8,23 @@ A Javascript library for interfacing with Hone.
 Include the SDK from our CDN:
 
 ```html
-<script src="//honefiles.global.ssl.fastly.net/sdk/2.6.1/hone.min.js"></script>
+<script src="//honefiles.global.ssl.fastly.net/sdk/2.7.3/hone.min.js"></script>
+```
+
+Or, if you only need to resize iframes and listen for events, you can include a
+smaller helper:
+
+```html
+<script src="//honefiles.global.ssl.fastly.net/sdk/2.7.3/iframe.min.js"></script>
 ```
 
 ## Documentation
 
 You can read documentation [here](docs/).
 
-## Example
+## Examples
+
+### Controlling the SDK
 
 By default, hone creates an instance in the global window:
 
@@ -35,17 +44,62 @@ before loading the SDK, eg:
 <script type="text/javascript" src="//honefiles.global.ssl.fastly.net/sdk/x.x.x/hone.min.js"></script>
 ```
 
-You can create a new instance if you want to control variables:
+You can create a new instance if you want to control settings:
 
 ```javascript
 var hone = new Hone( {
     init: false // wait for us to init, maybe we want to do some work first
 } );
 
-// do some work
+// do some work, then init by hand:
 
 hone.init();
+```
 
+### Using the iframe helper to handle iframe resizing
+
+First, include the iframe helper, replace the x.x.x with the appropriate version:
+
+```html
+<script type="text/javascript" src="//honefiles.global.ssl.fastly.net/sdk/x.x.x/iframe.min.js"></script>
+```
+
+Next, control the iframe sizing using data- attributes. For example, you can tell the iframe
+to auto-resize its height to contain the content without a scrollbar:
+
+```html
+<iframe class="hone-embed" src="http://gohone.com/Quiz/QUIZID?embed=true" width="600" style="border: none; float: none; clear: both;" data-resize="height"></iframe>
+```
+
+The available options for the data-resize attribute are:
+
+* true - resizes both width and height to contain content
+* width - resizes only width to contain content
+* height - resizes only height to contain content
+
+### Listening for user actions
+
+In the SDK:
+
+```javascript
+hone.eventBus.on( 'voted', function( vote ) {
+    console.log( 'Voted!' );
+} );
+```
+
+Or you can listen with the iframe helper:
+
+```javascript
+honeIFrameHelper.eventBus.on( 'voted', function( vote ) {
+    console.log( 'Voted!' );
+} );
+```
+
+### Listening for SDK events
+
+The SDK emits various events, check the [docs](docs/) for details:
+
+```javascript
 // bind some events
 hone.on( 'auth.login', function( e ) {
     $( '.authenticated' ).show();

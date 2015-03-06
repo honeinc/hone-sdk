@@ -1,9 +1,6 @@
 'use strict';
 
-var antisync = {
-    series: require( 'antisync/series' ),
-    waterfall: require( 'antisync/waterfall' )
-};
+var async = require( 'async' );
 var EventEmitter  = require( 'eventemitter2' ).EventEmitter2;
 var extend = require( 'extend' );
 
@@ -40,7 +37,7 @@ Registration.prototype.getPerson = function( callback ) {
                 return;
             }
 
-            antisync.series( [
+            async.series( [
                 function( next ) {
                     if ( person ) {
                         self.hone.load( 'person', person );
@@ -101,7 +98,7 @@ Registration.prototype.register = function( person, callback ) {
     person = person || {};
     callback = callback || noop;
     
-    antisync.waterfall( [
+    async.waterfall( [
         self.getPerson.bind( self ),
 
         function( _person, next ) {

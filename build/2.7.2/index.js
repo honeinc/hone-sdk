@@ -68,7 +68,7 @@ function Hone( options ) {
 
     self.teams = new Teams( self );
 
-    self._iframeSizer = new IFrameSizer( self.eventBus );
+    self._iframeSizer = new IFrameSizer( self );
 
     if ( self.options.init ) {
         // we wait a tick to give them an opportunity to bind events

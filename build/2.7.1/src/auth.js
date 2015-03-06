@@ -1,13 +1,11 @@
 'use strict';
 
 var ajaja = require( 'ajaja' );
-var antisync = {
-    series: require( 'antisync/series' ),
-    parallel: require( 'antisync/parallel' )
-};
+var async = require( 'async' );
 var EventEmitter = require( 'eventemitter2' ).EventEmitter2;
 var extend = require( 'extend' );
 var diff = require( 'deep-diff' ).diff;
+var base64 = require( 'js-base64' ).Base64;
 
 module.exports = Auth;
 
@@ -21,17 +19,6 @@ function Auth( hone ) {
 Auth.prototype = Object.create( EventEmitter.prototype, {} );
 
 function noop() {}
-
-function base64( str ) {
-    if ( typeof Buffer !== 'undefined' ) {
-        /*jshint ignore:start */
-        return new Buffer( str ).toString( 'base64' );   
-        /*jshint ignore:end */
-    }
-    else {
-        return btoa( str );
-    }
-}
 
 Auth.prototype._onUserLogin = function( user, callback ) {
     
@@ -167,7 +154,7 @@ Auth.prototype.signup = function( options, callback ) {
     var person = null;
     var user = null;
     
-    antisync.series( [
+    async.series( [
         function( next ) {
 
             self.hone.getPerson( function( error, _person ) {
@@ -241,7 +228,7 @@ Auth.prototype.logout = function( callback ) {
         self.hone.state.set( 'user', null );
         self.hone.state.set( 'authtoken', null );
         
-        antisync.parallel( [
+        async.parallel( [
             self.hone.xdls.removeItem.bind( self.hone.xdls, 'user' ),
             self.hone.xdls.removeItem.bind( self.hone.xdls, 'authtoken' )
         ], function( error ) {
@@ -279,17 +266,17 @@ Auth.prototype.login = function( options, callback ) {
     
     callback = callback || noop;
     
-    antisync.series( [
+    async.series( [
         // setup login auth
         function( next ) {
             if ( options.facebook && options.facebook.token ) {
-                authorization = 'Facebook ' + base64( options.facebook.id + ':' + options.facebook.token );
+                authorization = 'Facebook ' + base64.encode( options.facebook.id + ':' + options.facebook.token );
             }
             else if ( options.phone ) {
-                authorization = 'Phone ' + base64( options.phone + ':' + options.code );
+                authorization = 'Phone ' + base64.encode( options.phone + ':' + options.code );
             }
             else if ( options.email ) {
-                authorization = 'Email ' + base64( options.email + ':' + options.code );
+                authorization = 'Email ' + base64.encode( options.email + ':' + options.code );
             }
             else {
                 next( 'No valid login method.' );

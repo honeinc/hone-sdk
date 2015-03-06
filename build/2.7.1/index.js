@@ -1,9 +1,7 @@
 'use strict';
 
 var ajaja = require( 'ajaja' );
-var antisync = {
-    parallel: require( 'antisync/parallel' )
-};
+var async = require( 'async' );
 var Delver = require( 'delver' );
 var EventEmitter = require( 'eventemitter2' ).EventEmitter2;
 var EventBus = require( 'browser-event-bus' );
@@ -68,7 +66,7 @@ function Hone( options ) {
 
     self.teams = new Teams( self );
 
-    self._iframeSizer = new IFrameSizer( self.eventBus );
+    self._iframeSizer = new IFrameSizer( self );
 
     if ( self.options.init ) {
         // we wait a tick to give them an opportunity to bind events
@@ -84,7 +82,7 @@ Hone.prototype.init = function( callback ) {
     var self = this;
 
     // these should tolerate being called in parallel, since the auth module can listen for api_loaded if necessary
-    antisync.parallel( [
+    async.parallel( [
         self.auth.getUser.bind( self.auth ),
         self._getAPI.bind( self )
     ], function( error ) {

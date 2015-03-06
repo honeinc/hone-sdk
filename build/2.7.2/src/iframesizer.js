@@ -4,12 +4,12 @@ var EventEmitter = require( 'eventemitter2' ).EventEmitter2;
 
 module.exports = IFrameSizer;
 
-function IFrameSizer( eventBus ) {
+function IFrameSizer( hone ) {
     var self = this;
     EventEmitter.call( self );
 
-    self.eventBus = eventBus;
-    self.eventBus.on( 'rendered', self.onRendered.bind( self ) );
+    self.hone = hone;
+    self.hone.eventBus.on( 'rendered', self.onRendered.bind( self ) );
 }
 
 IFrameSizer.prototype = Object.create( EventEmitter.prototype, {} );

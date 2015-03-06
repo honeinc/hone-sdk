@@ -1,5 +1,7 @@
 'use strict';
 
+var util = require( 'util' );
+
 module.exports = Teams;
 
 function Teams( hone ) {
@@ -20,7 +22,7 @@ Teams.prototype.getByUser = function( user, callback ) {
 
     self.hone.get( {
         type: 'Team',
-        query: 'user == "' + user._id + '" or "' + user._id + '" in members'
+        query: util.format( 'user == "%s" or "%s" in members', user._id, user._id )
     }, function( error, _teams ) {
         if ( error ) {
             callback( error );
