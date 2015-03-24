@@ -1,6 +1,6 @@
 {
   "name": "hone",
-  "version": "2.7.3",
+  "version": "2.7.4",
   "description": "An SDK for interacting with Hone.",
   "homepage": "https://github.com/honeinc/hone-sdk",
   "repository": {

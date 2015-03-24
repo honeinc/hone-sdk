@@ -1,5 +1,41 @@
+<!doctype html>
 <html>
+    <head>
+        <script type="text/javascript" src="../build/2.7.4/iframe.js" ></script>
+        
+        <script>
+            window.hone.eventBus.on( 'voted', function( event ) {
+                console.dir( event );
+            } );
+
+            window.hone.eventBus.on( 'rendered', function( event ) {
+                console.dir( event );
+            } );
+
+            window.hone.eventBus.on( 'rendered', function( event ) {
+                if ( event.view !== 'quizoutcome' ) {
+                    return;
+                }
+                
+                switch( event.outcomeId ) {
+                    case "54dabd0c320a20f02bcb0bd5":
+                        console.log( 'got "rager"' );
+                        break;
+                    case "54dabd0c320a20f02bcb0bd6":
+                        console.log( 'got "loyalist"' );
+                        break;
+                    case "54dabd0c320a20f02bcb0bd7":
+                        console.log( 'got "overly aggressive"' );
+                        break;
+                    case "54dabd0c320a20f02bcb0bd8":
+                        console.log( 'got "tag-along"' );
+                        break;
+                }
+            } );
+            
+        </script>
+    </head>
     <body>
-        <script type="text/javascript" src="../build/hone-1.13.0.js" ></script>
+        <iframe frameborder="0" class="hone-embed" data-resize="height" src="//gohone.com/Quiz/54dabd0c320a20f02bcb0bd4?embed=true" width="639" height="1200"></iframe>
     </body>
 </html>
