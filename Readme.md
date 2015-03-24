@@ -8,14 +8,14 @@ A Javascript library for interfacing with Hone.
 Include the SDK from our CDN:
 
 ```html
-<script src="//honefiles.global.ssl.fastly.net/sdk/2.7.4/hone.min.js"></script>
+<script src="//honefiles.global.ssl.fastly.net/sdk/2.7.5/hone.min.js"></script>
 ```
 
 Or, if you only need to resize iframes and listen for events, you can include a
 smaller helper:
 
 ```html
-<script src="//honefiles.global.ssl.fastly.net/sdk/2.7.4/iframe.min.js"></script>
+<script src="//honefiles.global.ssl.fastly.net/sdk/2.7.5/iframe.min.js"></script>
 ```
 
 ## Documentation
