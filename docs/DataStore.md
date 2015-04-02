@@ -27,10 +27,13 @@ hone.create( options, callback )
 
 Creates an object based on the options specified.
 
-| option          | description                                                           |
-| :-------------- | :-------------------------------------------------------------------- |
-| type (string)   | Specifies the type of object to retrieve.                             |
-| data (object)   | Specifies any initial data to send along with the create request.     |
+| option          | description                                                                  | default value |
+| :-------------- | :--------------------------------------------------------------------------- | :------------ |
+| type (string)   | Specifies the type of object to retrieve.                                    |               |
+| data (object)   | Specifies any initial data to send along with the create request.            |               |
+| save (boolean)  | Specifies if the object should be saved to the server.                       | false         |
+| cache (boolean) | Specifies if the object should be put into the local cache.                  | true          |
+| decorate (boolean) | Specified is the object should be decorated, including the save() method. | true          |
 
 Example:
 
@@ -39,7 +42,8 @@ hone.create( {
     type: 'Quiz',
     data: {
         title: 'foo'
-    }
+    },
+    save: true // save it to the server right away
 }, function( error, quiz ) {
     if ( error ) {
         console.error( error );
