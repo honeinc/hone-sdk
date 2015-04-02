@@ -67,6 +67,7 @@ Gets object(s) based on the options specified.
 | type (string)   | Specifies the type of object to retrieve.                             |
 | id (string)     | Specifies a single id to retrieve.                                    |
 | query (object)  | Specified a query to search against, will return an array of results. |
+| data (object)   | Allows you to send data along with the request via HTTP query params. |
 | force (boolean) | Ignores the cache.                                                    |
 
 Example, fetching a single object:
@@ -121,6 +122,25 @@ hone.get( {
     }
 
     console.log( 'Found ' + quizzes.length + ' quizzes with a title of "foo.*" and updated since "2014-11-20T11:22:01.142Z".' );
+} );
+```
+
+You can send along query parameters if necessary:
+
+```javascript
+hone.get( {
+    type: 'Quiz',
+    id: '543d7522b9a138627fcc12c9',
+    data: {
+        foo: 'bar'
+    }
+}, function( error, quiz ) {
+    if ( error ) {
+        console.error( error );
+        return;
+    }
+
+    console.log( quiz.title );
 } );
 ```
 
