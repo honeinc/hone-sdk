@@ -24,7 +24,7 @@ var Teams = require( './src/teams' );
 module.exports = Hone;
 
 var _defaults = {
-    domain: 'gohone.com:80',
+    domain: 'gohone.com',
     xdls: {
         origin: 'https://gohone.com',
         path: '/xdls.html'
