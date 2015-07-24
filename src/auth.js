@@ -225,6 +225,7 @@ Auth.prototype.logout = function( callback ) {
     
     var existingUser = self.hone.state.get( 'user' );
     if ( !existingUser ) {
+        callback();
         return;
     }
 
