@@ -142,7 +142,7 @@ Auth.prototype.getUser = function( callback, force ) {
             url: self.hone.url( self.hone.api.users.me )
         }, function( error, user ) {
             if ( error && error.code != 400  && error.code != 401 && error.code != 403 ) {
-                callback( error );
+                callback( );
                 return;
             }
 
@@ -225,6 +225,7 @@ Auth.prototype.logout = function( callback ) {
     
     var existingUser = self.hone.state.get( 'user' );
     if ( !existingUser ) {
+        callback();
         return;
     }
 
