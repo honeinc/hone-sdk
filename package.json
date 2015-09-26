@@ -66,6 +66,6 @@
     "extend": "^2.0.0",
     "localforage": "^1.0.4",
     "ubid": "0.0.1",
-    "xdls": "^0.1.7"
+    "xdls": "git://github.com/honeinc/xdls.git#master"
   }
 }
