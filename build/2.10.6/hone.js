@@ -12916,6 +12916,7 @@ var _instanceId = 0;
 
 function XDLS( options ) {
     this.origin = options.origin;
+    this.host = options.host;
     this.path = options.path;
     this.ready = false;
     this.queue = [];
