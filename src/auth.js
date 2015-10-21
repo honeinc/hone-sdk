@@ -57,7 +57,8 @@ Auth.prototype._onUserLogin = function( user, callback ) {
     // if the user has updated their settings
     else if ( user && existingUser && existingUser._id === user._id && diff( existingUser, user ) ) {
         self.hone.state.set( 'user', user );
-        self.hone.xdls.setItem( 'user', user );
+        
+        self.hone.xdls.setItem( 'user', JSON.stringify( user ) );
         self.emit( 'user_updated', {
             old: existingUser,
             user: user
@@ -69,7 +70,7 @@ Auth.prototype._onUserLogin = function( user, callback ) {
             user: existingUser
         } );
         self.hone.state.set( 'user', user );
-        self.hone.xdls.setItem( 'user', user );
+        self.hone.xdls.setItem( 'user', JSON.stringify( user ) );
         self.emit( 'login', {
             user: user
         } );
@@ -77,7 +78,7 @@ Auth.prototype._onUserLogin = function( user, callback ) {
     // if there was no existing user and we now have a user
     else if ( user && !existingUser ) {
         self.hone.state.set( 'user', user );
-        self.hone.xdls.setItem( 'user', user );
+        self.hone.xdls.setItem( 'user', JSON.stringify( user ) );
         self.emit( 'login', { 
             user: user
         } );
@@ -331,7 +332,7 @@ Auth.prototype.login = function( options, callback ) {
                 self.hone.state.set( 'user', user );
                 self.hone.state.set( 'authtoken', response.authtoken );
                 
-                self.hone.xdls.setItem( 'user', user );
+                self.hone.xdls.setItem( 'user', JSON.stringify(  user ) );
                 self.hone.xdls.setItem( 'authtoken', response.authtoken );
 
                 self.emit( 'login', {
