@@ -37,7 +37,12 @@ Registration.prototype.getPerson = function( callback ) {
         var person = self.hone.xdls.getItem( 'person' );
         
         if ( person ) {
-            person = JSON.parse( person );
+            try {
+                person = JSON.parse( person );
+            } catch (ex) {
+                self.hone.xdls.removeItem( 'person' );
+                person = null;
+            }
         }
         
         // no error handling because we just want to create a person in that case

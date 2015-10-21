@@ -105,6 +105,16 @@ Auth.prototype.getUser = function( callback, force ) {
     if ( !force ) {
         var user = self.hone.xdls.getItem( 'user' );
         
+        if (user) {
+            try {
+                user = JSON.parse( user );
+            } catch (ex) {
+                self.hone.xdls.removeItem( 'user' );
+                callback( null );
+                return;
+            }
+        }
+        
         var existingUser = self.hone.state.get( 'user' );
         if ( existingUser ) {
             callback( null );
