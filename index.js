@@ -23,7 +23,7 @@ var Teams = require( './src/teams' );
 module.exports = Hone;
 
 var _defaults = {
-    domain: 'gohone.com',
+    domain: window.location.host || 'gohone.com',
     init: true
 };
 
