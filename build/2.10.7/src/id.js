@@ -41,7 +41,7 @@ Id.prototype._getUniqueId = function( callback ) {
         callback();
         return;
     }
-    
+
     ubid.get( function( error, data ) {
         if ( error ) {
             callback( error );

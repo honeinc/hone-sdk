@@ -8,6 +8,7 @@ var Delver = require( 'delver' );
 var EventEmitter = require( 'eventemitter2' ).EventEmitter2;
 var EventBus = require( 'browser-event-bus' );
 var extend = require( 'extend' );
+var XDLS = require( 'xdls' );
 
 var Auth = require( './src/auth' );
 var DataStore = require( './src/datastore' );
@@ -23,7 +24,11 @@ var Teams = require( './src/teams' );
 module.exports = Hone;
 
 var _defaults = {
-    domain: window.location.host || 'gohone.com',
+    domain: 'gohone.com:80',
+    xdls: {
+        origin: 'https://gohone.com',
+        path: '/xdls.html'
+    },
     init: true
 };
 
@@ -40,8 +45,9 @@ function Hone( options ) {
     self.eventBus = new EventBus( {
         namespace: 'Hone'
     } );
-    
-    self.xdls = window.localStorage;
+
+    self.xdls = new XDLS( self.options.xdls );
+    self.xdls.init(); // pre-init the iframe, etc.
 
     self.id = new Id( self );
     self._multiplexEmit( self.id, 'id' );

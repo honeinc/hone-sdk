@@ -57,8 +57,7 @@ Auth.prototype._onUserLogin = function( user, callback ) {
     // if the user has updated their settings
     else if ( user && existingUser && existingUser._id === user._id && diff( existingUser, user ) ) {
         self.hone.state.set( 'user', user );
-        
-        self.hone.xdls.setItem( 'user', JSON.stringify( user ) );
+        self.hone.xdls.setItem( 'user', user );
         self.emit( 'user_updated', {
             old: existingUser,
             user: user
@@ -70,7 +69,7 @@ Auth.prototype._onUserLogin = function( user, callback ) {
             user: existingUser
         } );
         self.hone.state.set( 'user', user );
-        self.hone.xdls.setItem( 'user', JSON.stringify( user ) );
+        self.hone.xdls.setItem( 'user', user );
         self.emit( 'login', {
             user: user
         } );
@@ -78,7 +77,7 @@ Auth.prototype._onUserLogin = function( user, callback ) {
     // if there was no existing user and we now have a user
     else if ( user && !existingUser ) {
         self.hone.state.set( 'user', user );
-        self.hone.xdls.setItem( 'user', JSON.stringify( user ) );
+        self.hone.xdls.setItem( 'user', user );
         self.emit( 'login', { 
             user: user
         } );
@@ -103,36 +102,38 @@ Auth.prototype.getUser = function( callback, force ) {
     }
 
     if ( !force ) {
-        var user = self.hone.xdls.getItem( 'user' );
-        
-        if (user) {
-            try {
-                user = JSON.parse( user );
-            } catch (ex) {
-                self.hone.xdls.removeItem( 'user' );
-                callback( null );
+        self.hone.xdls.getItem( 'user', function( error, user ) {
+            if ( error ) {
+                return; // we don't care if this errors, it's not authoritative
+            }
+
+            var existingUser = self.hone.state.get( 'user' );
+            if ( existingUser ) {
                 return;
             }
-        }
-        
-        var existingUser = self.hone.state.get( 'user' );
-        if ( existingUser ) {
-            callback( null );
-            return;
-        }
 
-        if ( !user ) {
-            callback( null );
-            return;
-        }
+            if ( !user ) {
+                return;
+            }
 
-        self.hone.state.set( 'user', user );
-        self.emit( 'login', {
-            user: user
+            self.hone.state.set( 'user', user );
+            self.emit( 'login', {
+                user: user
+            } );
         } );
 
-        var authtoken = self.hone.xdls.getItem( 'authtoken' );
-        self.hone.state.set( 'authtoken', authtoken );
+        self.hone.xdls.getItem( 'authtoken', function( error, authtoken ) {
+            if ( error ) {
+                return;
+            }
+
+            var existingUser = self.hone.state.get( 'user' );
+            if ( existingUser ) {
+                return;
+            }
+
+            self.hone.state.set( 'authtoken', authtoken );
+        } );
     }
     
     function _getUserAuthoritative() {
@@ -241,14 +242,22 @@ Auth.prototype.logout = function( callback ) {
         self.hone.state.set( 'user', null );
         self.hone.state.set( 'authtoken', null );
         
-        self.hone.xdls.removeItem( 'user' );
-        self.hone.xdls.removeItem( 'authtoken' );
-        
-        self.emit( 'logout', {
-            user: existingUser
-        } );
+        antisync.parallel( [
+            self.hone.xdls.removeItem.bind( self.hone.xdls, 'user' ),
+            self.hone.xdls.removeItem.bind( self.hone.xdls, 'authtoken' )
+        ], function( error ) {
+            if ( error ) {
+                self.emit( 'error', error );
+                callback( error );
+                return;
+            }
 
-        callback();
+            self.emit( 'logout', {
+                user: existingUser
+            } );
+
+            callback();
+        } );
     } );
 };
 
@@ -334,7 +343,7 @@ Auth.prototype.login = function( options, callback ) {
                 self.hone.state.set( 'user', user );
                 self.hone.state.set( 'authtoken', response.authtoken );
                 
-                self.hone.xdls.setItem( 'user', JSON.stringify(  user ) );
+                self.hone.xdls.setItem( 'user', user );
                 self.hone.xdls.setItem( 'authtoken', response.authtoken );
 
                 self.emit( 'login', {

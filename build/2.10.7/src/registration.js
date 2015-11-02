@@ -34,50 +34,41 @@ Registration.prototype.getPerson = function( callback ) {
     }
 
     function _getPerson() {
-        var person = self.hone.xdls.getItem( 'person' );
-        
-        if ( person ) {
-            try {
-                person = JSON.parse( person );
-            } catch (ex) {
-                self.hone.xdls.removeItem( 'person' );
-                person = null;
-            }
-        }
-        
-        // no error handling because we just want to create a person in that case
-        
-        antisync.series( [
-            function( next ) {
-                if ( person ) {
-                    self.hone.load( 'person', person );
-                    next();
-                    return;
-                }
-                
-                self.hone.create( {
-                    type: 'person',
-                    save: true,
-                    data: {
-                        id: self.hone.state.get( 'uniqueId' )
-                    }
-                }, function( error, _person ) {
-                    if ( error ) {
-                        next( error );
+        self.hone.xdls.getItem( 'person', function( error, person ) {
+            // no error handling because we just want to create a person in that case
+            
+            antisync.series( [
+                function( next ) {
+                    if ( person ) {
+                        self.hone.load( 'person', person );
+                        next();
                         return;
                     }
                     
-                    person = _person;
-                    next();
-                } );
-            }
-        ], function( error ) {
-            if ( error ) {
-                callback( error );
-                return;
-            }
-            
-            callback( null, person );
+                    self.hone.create( {
+                        type: 'person',
+                        save: true,
+                        data: {
+                            id: self.hone.state.get( 'uniqueId' )
+                        }
+                    }, function( error, _person ) {
+                        if ( error ) {
+                            next( error );
+                            return;
+                        }
+
+                        person = _person;
+                        next();
+                    } );
+                }
+            ], function( error ) {
+                if ( error ) {
+                    callback( error );
+                    return;
+                }
+                
+                callback( null, person );
+            } );
         } );
     }
 
@@ -129,7 +120,7 @@ Registration.prototype.register = function( person, callback ) {
         }
 
         self.hone.state.set( 'person', _person );
-        self.hone.xdls.setItem( 'person', JSON.stringify( _person.bare() ) );
+        self.hone.xdls.setItem( 'person', _person.bare() );
 
         self._registering = false;
         
