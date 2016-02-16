@@ -40,7 +40,7 @@ before loading the SDK, eg:
     window.hone = undefined;
 </script>
 
-<script type="text/javascript" src="//honefiles.global.ssl.fastly.net/sdk/x.x.x/hone.min.js"></script>
+<script type="text/javascript" src="//s3-us-west-1.amazonaws.com/static-v1.gohone.com/sdk/x.x.x/hone.min.js"></script>
 ```
 
 You can create a new instance if you want to control settings:
