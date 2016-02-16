@@ -8,13 +8,13 @@ A Javascript library for interfacing with Hone.
 To resize Hone iframes and listen for events, you can include this small helper:
 
 ```html
-<script src="//honefiles.global.ssl.fastly.net/sdk/2.10.8/iframe.min.js"></script>
+<script src="//s3-us-west-1.amazonaws.com/static-v1.gohone.com/sdk/2.10.8/iframe.min.js"></script>
 ```
 
 Or, if you'd like our entire the SDK from our CDN:
 
 ```html
-<script src="//honefiles.global.ssl.fastly.net/sdk/2.10.8/hone.min.js"></script>
+<script src="//s3-us-west-1.amazonaws.com/static-v1.gohone.com/sdk/2.10.8/hone.min.js"></script>
 ```
 
 ## Documentation
@@ -60,7 +60,7 @@ hone.init();
 First, include the iframe helper, replace the x.x.x with the appropriate version:
 
 ```html
-<script type="text/javascript" src="//honefiles.global.ssl.fastly.net/sdk/x.x.x/iframe.min.js"></script>
+<script type="text/javascript" src="//s3-us-west-1.amazonaws.com/static-v1.gohone.com/sdk/x.x.x/iframe.min.js"></script>
 ```
 
 Next, control the iframe sizing using data- attributes. For example, you can tell the iframe
